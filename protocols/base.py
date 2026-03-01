@@ -34,6 +34,7 @@ class BaseCVK(ABC):
         self.logs: List[str] = []
         self.tallies: Dict[str, int] = {}
         self.registered_voters: set = set()
+        self.voter_public_keys: Dict[str, bytes] = {}
         self.has_voted: set = set()
 
     def log_action(self, action: str) -> None:
@@ -50,11 +51,13 @@ class BaseCVK(ABC):
         self.logs.clear()
         return logs
 
-    def register_voter(self, voter_id: str) -> None:
+    def register_voter(self, voter_id: str, public_key: bytes = None) -> None:
         """
         Register a voter.
         """
         self.registered_voters.add(voter_id)
+        if public_key is not None:
+            self.voter_public_keys[voter_id] = public_key
         self.log_action(f"Registered voter with ID: {voter_id}")
 
     @abstractmethod

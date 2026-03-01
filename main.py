@@ -72,8 +72,10 @@ def reset_lab_state():
     }
 
     # Register all voters by default in CVK
-    for voter_id in st.session_state.voters.keys():
-        st.session_state.cvk.register_voter(voter_id)
+    for voter_id, voter in st.session_state.voters.items():
+        st.session_state.cvk.register_voter(
+            voter_id, voter.crypto_system.get_public_bytes()
+        )
 
     # Also grab initialization logs
     st.session_state.logs.extend(st.session_state.cvk.get_logs())

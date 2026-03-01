@@ -48,9 +48,6 @@ class SimpleVoter(BaseVoter):
         payload_data = {
             "message": b64encode(message).decode("utf-8"),
             "signature": b64encode(signature).decode("utf-8"),
-            "voter_public_key": b64encode(self.crypto_system.get_public_bytes()).decode(
-                "utf-8"
-            ),
         }
 
         payload_json = json.dumps(payload_data).encode("utf-8")
@@ -89,7 +86,21 @@ class SimpleCVK(BaseCVK):
 
             message_bytes = b64decode(payload_data["message"])
             signature_bytes = b64decode(payload_data["signature"])
-            voter_pub_key_pem = b64decode(payload_data["voter_public_key"])
+
+            # Extract ballot
+            ballot = json.loads(message_bytes.decode("utf-8"))
+            voter_id = ballot.get("voter_id")
+            candidate = ballot.get("candidate")
+
+            # Check registration
+            if voter_id not in self.registered_voters:
+                self.log_action(t(T.ERR_UNREGISTERED, lang, voter=voter_id))
+                return False
+
+            voter_pub_key_pem = self.voter_public_keys.get(voter_id)
+            if not voter_pub_key_pem:
+                self.log_action(t(T.ERR_UNREGISTERED, lang, voter=voter_id))
+                return False
 
             voter_pub_key = RSACryptoSystem.load_public_key(voter_pub_key_pem)
 
@@ -101,16 +112,6 @@ class SimpleCVK(BaseCVK):
                 return False
 
             self.log_action(t(T.SIG_VERIFIED, lang))
-
-            # Extract ballot
-            ballot = json.loads(message_bytes.decode("utf-8"))
-            voter_id = ballot.get("voter_id")
-            candidate = ballot.get("candidate")
-
-            # Check registration
-            if voter_id not in self.registered_voters:
-                self.log_action(t(T.ERR_UNREGISTERED, lang, voter=voter_id))
-                return False
 
             # Check double voting
             if voter_id in self.has_voted:
