@@ -8,6 +8,7 @@ from typing import Dict, Any, Optional
 
 from protocols.base import BaseVoter, BaseCVK
 from core.crypto import RSACryptoSystem
+from core.i18n import t, T
 
 
 class SimpleVoter(BaseVoter):
@@ -36,6 +37,7 @@ class SimpleVoter(BaseVoter):
 
         if simulate_tampering:
             # Tamper the message after signing
+            # We alter the ballot data slightly (simulating a lost byte or changed vote)
             ballot_data["candidate"] = "Hacker"
             message = json.dumps(ballot_data).encode("utf-8")
 
@@ -62,22 +64,26 @@ class SimpleCVK(BaseCVK):
         super().__init__()
         self.crypto_system = RSACryptoSystem()
         self.tallies = {candidate: 0 for candidate in candidates}
-        self.log_action("CVK initialized Simple Protocol.")
+        # To delay initialization log until language is known,
+        # we let main.py log the init if needed, or default it to En.
 
     def get_public_key(self) -> bytes:
         return self.crypto_system.get_public_bytes()
 
-    def process_vote(self, payload: Dict[str, Any]) -> bool:
+    def set_language(self, lang: str):
+        self.lang = lang
+
+    def process_vote(self, payload: Dict[str, Any], lang: str) -> bool:
         """
         3. CVK decrypts, verifies signature, checks double voting/registration, tallies.
         """
         try:
-            self.log_action("Received encrypted vote payload.")
+            self.log_action(t(T.RECEIVED_PAYLOAD, lang))
             encrypted_data = b64decode(payload.get("encrypted_data", ""))
 
             # Decrypt
             decrypted_json = self.crypto_system.decrypt(encrypted_data)
-            self.log_action("Payload decrypted successfully with CVK private key.")
+            self.log_action(t(T.DECRYPTED_SUCCESS, lang))
 
             payload_data = json.loads(decrypted_json.decode("utf-8"))
 
@@ -91,12 +97,10 @@ class SimpleCVK(BaseCVK):
             if not RSACryptoSystem.verify(
                 voter_pub_key, message_bytes, signature_bytes
             ):
-                self.log_action(
-                    "ERROR: Signature verification failed. Possible tampered ballot."
-                )
+                self.log_action(t(T.ERR_SIGNATURE, lang))
                 return False
 
-            self.log_action("Signature verified successfully.")
+            self.log_action(t(T.SIG_VERIFIED, lang))
 
             # Extract ballot
             ballot = json.loads(message_bytes.decode("utf-8"))
@@ -105,28 +109,24 @@ class SimpleCVK(BaseCVK):
 
             # Check registration
             if voter_id not in self.registered_voters:
-                self.log_action(
-                    f"ERROR: Unregistered voter {voter_id} attempted to vote."
-                )
+                self.log_action(t(T.ERR_UNREGISTERED, lang, voter=voter_id))
                 return False
 
             # Check double voting
             if voter_id in self.has_voted:
-                self.log_action(f"ERROR: Voter {voter_id} attempted to vote twice.")
+                self.log_action(t(T.ERR_DOUBLE_VOTE, lang, voter=voter_id))
                 return False
 
             # Tally vote
             if candidate not in self.tallies:
-                self.log_action(
-                    f"WARNING: Vote cast for unknown candidate {candidate}."
-                )
+                self.log_action(t(T.WARN_UNKNOWN_CAND, lang, candidate=candidate))
                 return False
 
             self.has_voted.add(voter_id)
             self.tallies[candidate] += 1
-            self.log_action(f"Vote successfully tallied for voter {voter_id}.")
+            self.log_action(t(T.VOTE_TALLIED, lang, voter=voter_id))
             return True
 
         except Exception as e:
-            self.log_action(f"ERROR: Failed to process vote: {str(e)}")
+            self.log_action(t(T.ERR_PROCESS_VOTE, lang, error=str(e)))
             return False

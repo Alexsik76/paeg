@@ -42,31 +42,72 @@ class RSACryptoSystem:
     def decrypt(self, ciphertext: bytes) -> bytes:
         """
         Decrypt a ciphertext using the private key.
+        Uses hybrid encryption (RSA + AES via Fernet).
         """
-        plaintext = self.private_key.decrypt(
-            ciphertext,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None,
-            ),
-        )
-        return plaintext
+        import json
+        from cryptography.fernet import Fernet
+        from base64 import b64decode
+
+        try:
+            payload = json.loads(ciphertext.decode("utf-8"))
+            encrypted_key = b64decode(payload["key"])
+            data = b64decode(payload["data"])
+
+            aes_key = self.private_key.decrypt(
+                encrypted_key,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None,
+                ),
+            )
+            f = Fernet(aes_key)
+            return f.decrypt(data)
+        except Exception:
+            # Fallback for standard RSA decrypt if it wasn't hybrid encrypted
+            return self.private_key.decrypt(
+                ciphertext,
+                padding.OAEP(
+                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                    algorithm=hashes.SHA256(),
+                    label=None,
+                ),
+            )
 
     @staticmethod
     def encrypt(public_key: rsa.RSAPublicKey, message: bytes) -> bytes:
         """
         Encrypt a message using a provided public key.
+        Because RSA has a strict message size limit depending on key size,
+        we use hybrid encryption: AES (Fernet) for the data, and RSA for the AES key.
         """
-        ciphertext = public_key.encrypt(
-            message,
+        import json
+        from cryptography.fernet import Fernet
+        from base64 import b64encode
+
+        # Generate a random AES key for Fernet
+        aes_key = Fernet.generate_key()
+        f = Fernet(aes_key)
+
+        # Encrypt the actual message with AES
+        ciphertext = f.encrypt(message)
+
+        # Encrypt the AES key with RSA
+        encrypted_key = public_key.encrypt(
+            aes_key,
             padding.OAEP(
                 mgf=padding.MGF1(algorithm=hashes.SHA256()),
                 algorithm=hashes.SHA256(),
                 label=None,
             ),
         )
-        return ciphertext
+
+        # Combine both into a JSON payload
+        hybrid_payload = {
+            "key": b64encode(encrypted_key).decode("utf-8"),
+            "data": b64encode(ciphertext).decode("utf-8"),
+        }
+        return json.dumps(hybrid_payload).encode("utf-8")
 
     @staticmethod
     def verify(public_key: rsa.RSAPublicKey, message: bytes, signature: bytes) -> bool:
