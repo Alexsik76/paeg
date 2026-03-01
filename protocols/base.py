@@ -46,7 +46,9 @@ class BaseCVK(ABC):
         """
         Return the list of logs and clear them.
         """
-        return self.logs
+        logs = self.logs.copy()
+        self.logs.clear()
+        return logs
 
     def register_voter(self, voter_id: str) -> None:
         """

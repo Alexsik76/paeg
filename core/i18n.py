@@ -27,6 +27,11 @@ class T:
     NO_VOTES = "no_votes"
     UNREGISTERED_USER = "unregistered_user"
     TIE_WARNING = "tie_warning"
+    RESET_VOTES = "reset_votes"
+    RESET_CONFIRMATION = "reset_confirmation"
+    CANCEL = "cancel"
+    ELECTION_HELD = "election_held"
+    ELECTION_NOT_HELD = "election_not_held"
 
     # Scenarios (These map from config.yaml IDs)
     SCENARIO_NORMAL = "scenario_normal"
@@ -51,6 +56,8 @@ class T:
     ATTEMPT_1 = "attempt_1"
     ATTEMPT_2 = "attempt_2"
     SIMULATING_ALL = "simulating_all"
+    SIMULATION_OK = "simulation_ok"
+    SIMULATION_ERRORS = "simulation_errors"
 
 
 # Translations
@@ -74,7 +81,12 @@ translations: Dict[str, Dict[str, str]] = {
         T.ELECTION_RESULTS: "### Election Results",
         T.NO_VOTES: "No votes have been cast yet or no candidates available.",
         T.UNREGISTERED_USER: "unregistered_user",
-        T.TIE_WARNING: "⚠️ **Tie Detected:** Candidates have an equal number of votes. A run-off election may be required.",
+        T.TIE_WARNING: "**Tie Detected:** Candidates have an equal number of votes. A run-off election may be required.",
+        T.RESET_VOTES: "Reset Election Results",
+        T.RESET_CONFIRMATION: "Are you sure? This will delete all current votes and logs.",
+        T.CANCEL: "Cancel",
+        T.ELECTION_HELD: "✅ Voting Conducted",
+        T.ELECTION_NOT_HELD: "Voting Not Conducted",
         T.SCENARIO_NORMAL: "Normal Vote (1 Voter)",
         T.SCENARIO_DOUBLE: "Double Voting Attempt",
         T.SCENARIO_UNREGISTERED: "Unregistered Voter Attempt",
@@ -95,6 +107,8 @@ translations: Dict[str, Dict[str, str]] = {
         T.ATTEMPT_1: "Attempt 1/2:",
         T.ATTEMPT_2: "Attempt 2/2 (Double vote):",
         T.SIMULATING_ALL: "--- Simulating full election for all registered voters ---",
+        T.SIMULATION_OK: "Full election simulation completed. All {count} votes processed successfully.",
+        T.SIMULATION_ERRORS: "WARNING: Full election simulation completed with violations. {success_count} of {total_count} votes tallied.",
     },
     "Українська": {
         T.APP_TITLE: "Симуляція:",
@@ -115,7 +129,12 @@ translations: Dict[str, Dict[str, str]] = {
         T.ELECTION_RESULTS: "### Результати виборів",
         T.NO_VOTES: "Жодного голосу ще не віддано або кандидати відсутні.",
         T.UNREGISTERED_USER: "незареєстрований_користувач",
-        T.TIE_WARNING: "⚠️ **Увага:** Виявлено однакову кількість голосів. Потреба в повторному голосуванні.",
+        T.TIE_WARNING: "**Увага:** Виявлено однакову кількість голосів. Потреба в повторному голосуванні.",
+        T.RESET_VOTES: "Скинути результати виборів",
+        T.RESET_CONFIRMATION: "Ви впевнені? Це видалить усі поточні голоси та логи процесу.",
+        T.CANCEL: "Скасувати",
+        T.ELECTION_HELD: "✅ Голосування проведено",
+        T.ELECTION_NOT_HELD: "Голосування не проводилось",
         T.SCENARIO_NORMAL: "Нормальне голосування (1 виборець)",
         T.SCENARIO_DOUBLE: "Спроба подвійного голосування",
         T.SCENARIO_UNREGISTERED: "Спроба голосув. незареєстрованого виборця",
@@ -136,6 +155,8 @@ translations: Dict[str, Dict[str, str]] = {
         T.ATTEMPT_1: "Спроба 1/2:",
         T.ATTEMPT_2: "Спроба 2/2 (Подвійне голосування):",
         T.SIMULATING_ALL: "--- Симуляція повних виборів для всіх зареєстрованих виборців ---",
+        T.SIMULATION_OK: "Симуляцію виборів завершено. Усі {count} голосів успішно зараховано ЦВК.",
+        T.SIMULATION_ERRORS: "ПОПЕРЕДЖЕННЯ: Симуляцію виборів завершено з порушеннями. Зараховано {success_count} з {total_count} голосів.",
     },
 }
 

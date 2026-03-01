@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  voting-simulator:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: voting_simulator_app
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0

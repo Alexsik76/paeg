@@ -4,7 +4,7 @@ Implementation of Lab 1: Simple Protocol.
 
 import json
 from base64 import b64encode, b64decode
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 from protocols.base import BaseVoter, BaseCVK
 from core.crypto import RSACryptoSystem

@@ -3,7 +3,6 @@ Main Streamlit Entry Point for Electronic Voting Protocols Simulator.
 """
 
 import streamlit as st
-import random
 
 from core.config_parser import load_config, get_lab_config
 from protocols.lab1_simple import SimpleCVK, SimpleVoter
@@ -14,6 +13,16 @@ st.set_page_config(
     page_title="Electronic Voting Simulator",
     page_icon="🗳️",  # Removed the crown icon
     layout="wide",
+)
+
+# Hide Streamlit Deploy button
+st.markdown(
+    """
+    <style>
+    .stAppDeployButton {display:none;}
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 
 # Language Toggle
@@ -42,11 +51,12 @@ lab_config = get_lab_config(config, selected_lab_id)
 
 st.title(f"{t(T.APP_TITLE, lang)} {lab_config['name']}")
 
-# Initialize or retrieve Session State for the selected Lab
-if "lab_id" not in st.session_state or st.session_state.lab_id != selected_lab_id:
-    # Reset state for a new lab
+
+def reset_lab_state():
+    """Reset the CVK and voter states for the lab."""
     st.session_state.lab_id = selected_lab_id
     st.session_state.logs = []
+    st.session_state.voting_conducted = False
 
     # Setup CVK
     candidates = lab_config.get("settings", {}).get("candidates", [])
@@ -67,6 +77,12 @@ if "lab_id" not in st.session_state or st.session_state.lab_id != selected_lab_i
 
     # Also grab initialization logs
     st.session_state.logs.extend(st.session_state.cvk.get_logs())
+
+
+# Initialize or retrieve Session State for the selected Lab
+if "lab_id" not in st.session_state or st.session_state.lab_id != selected_lab_id:
+    reset_lab_state()
+
 
 # Update CVK language on every render (in case it was switched)
 st.session_state.cvk.set_language(lang)
@@ -102,82 +118,74 @@ with tab_control:
 
     with col2:
         st.subheader(t(T.ACTION, lang))
-        if st.button(t(T.EXECUTE_SCENARIO, lang)):
+
+        # Scenario execution logic
+        if st.button(t(T.EXECUTE_SCENARIO, lang), type="primary"):
             st.session_state.logs.append(f"--- {scenarios[scenario]} ---")
             cvk: SimpleCVK = st.session_state.cvk
 
-            if scenario == "scenario_simulate_all":
-                # Special scenario: 5 voters vote simultaneously for random candidates
-                st.session_state.logs.append(t(T.SIMULATING_ALL, lang))
-                for v_id, active_voter in st.session_state.voters.items():
-                    rand_candidate = random.choice(candidates)
-                    st.session_state.logs.append(
-                        t(
-                            T.VOTER_PREPARING,
-                            lang,
-                            voter=active_voter.voter_id,
-                            candidate=rand_candidate,
-                        )
-                    )
-                    payload = active_voter.vote(
-                        candidate_id=rand_candidate,
-                        cvk_public_key_pem=cvk.get_public_key(),
-                        simulate_tampering=False,
-                    )
-                    st.session_state.logs.append(t(T.SENDING_PAYLOAD, lang))
-                    cvk.process_vote(payload, lang)
-                    st.session_state.logs.extend(cvk.get_logs())
-            else:
-                # Single voter scenarios
-                simulate_tampering = False
-                unregistered_str = t(T.UNREGISTERED_USER, lang)
+            # Keep track of the number of logs before execution to find the newly added ones
+            initial_log_count = len(st.session_state.logs)
 
-                if (
-                    selected_voter_id == unregistered_str
-                    or scenario == "scenario_unregistered"
-                ):
-                    active_voter = SimpleVoter(unregistered_str, is_registered=False)
+            from protocols.scenarios import execute_scenario
+
+            vote_processing_logs = execute_scenario(
+                scenario_id=scenario,
+                cvk=cvk,
+                voters=st.session_state.voters,
+                candidates=candidates,
+                selected_voter_id=selected_voter_id,
+                selected_candidate=selected_candidate,
+                lang=lang,
+            )
+            st.session_state.logs.extend(vote_processing_logs)
+
+            # Show immediate result of the action under the button
+            # Filter out empty or separator logs to find the real final status
+            meaningful_logs = [
+                log_msg
+                for log_msg in vote_processing_logs
+                if log_msg
+                and not log_msg.startswith("---")
+                and not log_msg.startswith("Спроба")
+                and not log_msg.startswith("Attempt")
+            ]
+            if meaningful_logs:
+                last_msg = meaningful_logs[-1]
+                if "ERROR" in last_msg or "ПОМИЛКА" in last_msg:
+                    st.error(last_msg)
+                elif "WARNING" in last_msg or "ПОПЕРЕДЖЕННЯ" in last_msg:
+                    st.warning(last_msg)
                 else:
-                    active_voter = st.session_state.voters[selected_voter_id]
+                    st.success(last_msg)
 
-                if scenario == "scenario_tampered":
-                    simulate_tampering = True
+            st.session_state.voting_conducted = True
 
-                # 1 & 2: Voter signs and encrypts
-                st.session_state.logs.append(
-                    t(
-                        T.VOTER_PREPARING,
-                        lang,
-                        voter=active_voter.voter_id,
-                        candidate=selected_candidate,
-                    )
-                )
-                payload = active_voter.vote(
-                    candidate_id=selected_candidate,
-                    cvk_public_key_pem=cvk.get_public_key(),
-                    simulate_tampering=simulate_tampering,
-                )
+    # New Status Panel directly inside Control Panel
+    st.divider()
 
-                # Additional execution for double voting scenario
-                if scenario == "scenario_double":
-                    st.session_state.logs.append(t(T.ATTEMPT_1, lang))
-                    cvk.process_vote(payload, lang)
-                    st.session_state.logs.extend(cvk.get_logs())
+    voting_conducted = st.session_state.get("voting_conducted", False)
 
-                    st.session_state.logs.append(t(T.ATTEMPT_2, lang))
-                    # Voter votes again
-                    payload2 = active_voter.vote(
-                        candidate_id=selected_candidate,
-                        cvk_public_key_pem=cvk.get_public_key(),
-                        simulate_tampering=simulate_tampering,
-                    )
-                    cvk.process_vote(payload2, lang)
-                    st.session_state.logs.extend(cvk.get_logs())
-                else:
-                    # 3: CVK processes the single vote
-                    st.session_state.logs.append(t(T.SENDING_PAYLOAD, lang))
-                    cvk.process_vote(payload, lang)
-                    st.session_state.logs.extend(cvk.get_logs())
+    if voting_conducted:
+        st.subheader(t(T.ELECTION_HELD, lang))
+    else:
+        st.subheader(t(T.ELECTION_NOT_HELD, lang))
+
+    if st.button(t(T.RESET_VOTES, lang), disabled=not voting_conducted):
+        reset_lab_state()
+        st.rerun()
+
+    st.write("")
+    res_cols = st.columns(len(st.session_state.cvk.tallies))
+    for i, (cand, count) in enumerate(st.session_state.cvk.tallies.items()):
+        with res_cols[i]:
+            st.metric(label=cand, value=count)
+
+    # Check for tie scenario
+    if voting_conducted:
+        counts = list(st.session_state.cvk.tallies.values())
+        if len(counts) > 1 and len(set(counts)) == 1 and counts[0] > 0:
+            st.warning(t(T.TIE_WARNING, lang))
 
 with tab_terminal:
     render_terminal(st.session_state.logs, lang)
