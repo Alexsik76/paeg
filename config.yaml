@@ -1,0 +1,23 @@
+labs:
+  - id: 1
+    name: "Lab 1: Simple Protocol"
+    protocol: "simple"
+    settings:
+      num_voters: 5
+      candidates:
+        - "Alice"
+        - "Bob"
+        - "Charlie"
+    scenarios:
+      - id: "normal_vote"
+        name: "Normal Vote"
+        description: "A registered voter casts a valid vote."
+      - id: "double_vote"
+        name: "Double Voting"
+        description: "A registered voter attempts to vote twice."
+      - id: "unregistered_voter"
+        name: "Unregistered Voter"
+        description: "An unregistered individual attempts to vote."
+      - id: "tampered_ballot"
+        name: "Tampered Ballot"
+        description: "A ballot's content is altered after it was signed."
