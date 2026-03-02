@@ -3,7 +3,7 @@ Abstract base classes for the voting protocols.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 class BaseVoter(ABC):
@@ -51,7 +51,7 @@ class BaseCVK(ABC):
         self.logs.clear()
         return logs
 
-    def register_voter(self, voter_id: str, public_key: bytes = None) -> None:
+    def register_voter(self, voter_id: str, public_key: Optional[bytes] = None) -> None:
         """
         Register a voter.
         """

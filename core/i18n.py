@@ -105,6 +105,20 @@ class T:
     ERR_INVALID_RN = "err_invalid_rn"
     ERR_RN_ALREADY_USED = "err_rn_already_used"
 
+    # Lab 4: Factor Protocol
+    SCENARIO_NORMAL_FACTOR = "scenario_normal_factor"
+    SCENARIO_SIMULATE_ALL_FACTOR = "scenario_simulate_all_factor"
+    SCENARIO_TAMPER_FACTOR = "scenario_tamper_factor"
+    FACTOR_PREPARING = "factor_preparing"
+    FACTOR_SENDING_V1 = "factor_sending_v1"
+    FACTOR_SEND_V2 = "factor_sending_v2"
+    FACTOR_VC_RECEIVED = "factor_vc_received"
+    FACTOR_VC_VERIFIED = "factor_vc_verified"
+    FACTOR_CVK_JOINING = "factor_cvk_joining"
+    FACTOR_CVK_DECRYPTED = "factor_cvk_decrypted"
+    FACTOR_ERR_TAMPERED = "factor_err_tampered"
+    FACTOR_ERR_INVALID_ID = "factor_err_invalid_id"
+
 
 # Translations
 translations: Dict[str, Dict[str, str]] = {
@@ -195,6 +209,18 @@ translations: Dict[str, Dict[str, str]] = {
         T.SPLIT_VERIFY_FAIL_NOT_FOUND: "❌ VERIFICATION FAILED: Anonymous ID not found in published CVK ballots.",
         T.ERR_INVALID_RN: "ERROR: Registration Number is invalid or not issued by Bureau.",
         T.ERR_RN_ALREADY_USED: "ERROR: Registration Number was already used. Vote rejected.",
+        T.SCENARIO_NORMAL_FACTOR: "Normal Vote (Factor Split)",
+        T.SCENARIO_SIMULATE_ALL_FACTOR: "Simulate Full Election (Factor)",
+        T.SCENARIO_TAMPER_FACTOR: "Tamper with Factor at VC-1",
+        T.FACTOR_PREPARING: "Voter {voter} splits ID {val} into factors {f1} and {f2}...",
+        T.FACTOR_SENDING_V1: "Sending Factor 1 to Voting Commission 1...",
+        T.FACTOR_SEND_V2: "Sending Factor 2 to Voting Commission 2...",
+        T.FACTOR_VC_RECEIVED: "VC received partial encrypted ballot from voter {voter}.",
+        T.FACTOR_VC_VERIFIED: "VC verified voter's signature successfully.",
+        T.FACTOR_CVK_JOINING: "CVK collecting and joining encrypted factors via homomorphic multiplication...",
+        T.FACTOR_CVK_DECRYPTED: "CVK decrypted joined ballot. Found Candidate ID {val}.",
+        T.FACTOR_ERR_TAMPERED: "ERROR: Decrypted ID {val} does not match any candidate! Tampering detected.",
+        T.FACTOR_ERR_INVALID_ID: "ERROR: Decrypted value {val} is not a valid Candidate ID.",
     },
     "Українська": {
         T.APP_TITLE: "Симуляція:",
@@ -283,6 +309,18 @@ translations: Dict[str, Dict[str, str]] = {
         T.SPLIT_VERIFY_FAIL_NOT_FOUND: "❌ ПЕРЕВІРКА ПРОВАЛЕНА: Анонімний ID не знайдено в опублікованих списках ЦВК.",
         T.ERR_INVALID_RN: "ПОМИЛКА: ЦВК відхилила бюлетень. RN недійсний (не видавався Бюро).",
         T.ERR_RN_ALREADY_USED: "ПОМИЛКА: ЦВК відхилила бюлетень. Цей RN вже був використаний.",
+        T.SCENARIO_NORMAL_FACTOR: "Нормальне голосування (Розподіл множників)",
+        T.SCENARIO_SIMULATE_ALL_FACTOR: "Симулювати повні вибори (Множники)",
+        T.SCENARIO_TAMPER_FACTOR: "Підміна множника у ВК-1",
+        T.FACTOR_PREPARING: "Виборець {voter} розділяє ID {val} на множники {f1} та {f2}...",
+        T.FACTOR_SENDING_V1: "Надсилання множника 1 до Виборчої Комісії 1...",
+        T.FACTOR_SEND_V2: "Надсилання множника 2 до Виборчої Комісії 2...",
+        T.FACTOR_VC_RECEIVED: "ВК отримала частину зашифрованого бюлетеня від {voter}.",
+        T.FACTOR_VC_VERIFIED: "ВК успішно перевірила ЕЦП виборця.",
+        T.FACTOR_CVK_JOINING: "ЦВК збирає та об'єднує зашифровані множники (гомоморфне множення)...",
+        T.FACTOR_CVK_DECRYPTED: "ЦВК розшифрувала об'єднаний бюлетень. Отримано ID кандидата: {val}.",
+        T.FACTOR_ERR_TAMPERED: "ПОМИЛКА: Розшифрований ID {val} не збігається з жодним кандидатом! Виявлено підміну.",
+        T.FACTOR_ERR_INVALID_ID: "ПОМИЛКА: Розшифроване значення {val} не є дійсним ID кандидата.",
     },
 }
 

@@ -8,6 +8,7 @@ from core.config_parser import load_config, get_lab_config
 from labs.lab1.protocol import SimpleCVK, SimpleVoter
 from labs.lab2.protocol import BlindCVK, BlindVoter
 from labs.lab3.protocol import RegistrationBureau, SplitCVK, SplitVoter
+from labs.lab4.protocol import VotingCommission, SplitFactorCVK, SplitFactorVoter
 from ui.components import render_terminal, render_results, render_tasks
 from core.i18n import t, T
 
@@ -49,9 +50,12 @@ selected_lab_id = st.sidebar.selectbox(
     format_func=lambda x: f"{t(T.LAB_PREFIX, lang)} {x}",
 )
 
+if selected_lab_id is None:
+    st.stop()
+
 lab_config = get_lab_config(config, selected_lab_id)
 
-st.title(f"{t(T.APP_TITLE, lang)} {lab_config['name']}")
+st.title(f"{t(T.APP_TITLE, lang)} {t(lab_config['name'], lang)}")
 
 
 def reset_lab_state():
@@ -81,6 +85,19 @@ def reset_lab_state():
         }
         st.session_state.logs.append(t(T.SPLIT_BR_INIT, lang))
         init_msg = t(T.SPLIT_CVK_INIT, lang)
+
+    elif protocol_type == "factor":
+        candidate_ids = lab_config.get("settings", {}).get("candidate_ids", {})
+        st.session_state.cvk = SplitFactorCVK(
+            candidates=candidates, candidate_id_map=candidate_ids
+        )
+        st.session_state.vc1 = VotingCommission(commission_id=1)
+        st.session_state.vc2 = VotingCommission(commission_id=2)
+        st.session_state.voters = {
+            f"voter_{i}": SplitFactorVoter(voter_id=f"voter_{i}")
+            for i in range(1, num_voters + 1)
+        }
+        init_msg = "ВК-1, ВК-2 та ЦВК ініціалізовані для гомоморфного протоколу."
 
     else:
         st.session_state.cvk = SimpleCVK(candidates=candidates)
@@ -152,8 +169,12 @@ with tab_control:
 
         # Scenario execution logic
         if st.button(t(T.EXECUTE_SCENARIO, lang), type="primary"):
+            if scenario is None or selected_voter_id is None or selected_candidate is None:
+                st.error("Будь ласка, оберіть всі опції." if lang == "Українська" else "Please select all options.")
+                st.stop()
+
             st.session_state.logs.append(f"--- {scenarios[scenario]} ---")
-            cvk: SimpleCVK = st.session_state.cvk
+            cvk = st.session_state.cvk
 
             # Keep track of the number of logs before execution to find the newly added ones
             initial_log_count = len(st.session_state.logs)
@@ -204,6 +225,37 @@ with tab_control:
                         lang,
                         candidates,
                     )
+            elif protocol_type == "factor":
+                from labs.lab4.scenarios import (
+                    run_simulate_all_factor,
+                    run_single_voter_scenario_factor,
+                )
+
+                candidate_ids = lab_config.get("settings", {}).get("candidate_ids", {})
+
+                if scenario == "scenario_simulate_all_factor":
+                    vote_processing_logs = run_simulate_all_factor(
+                        st.session_state.vc1,
+                        st.session_state.vc2,
+                        cvk,
+                        st.session_state.voters,
+                        candidates,
+                        candidate_ids,
+                        lang,
+                    )
+                else:
+                    vote_processing_logs = run_single_voter_scenario_factor(
+                        st.session_state.vc1,
+                        st.session_state.vc2,
+                        cvk,
+                        st.session_state.voters,
+                        scenario,
+                        selected_voter_id,
+                        selected_candidate,
+                        candidate_ids,
+                        lang,
+                    )
+
             else:
                 from labs.lab1.scenarios import (
                     run_simulate_all,
@@ -238,9 +290,10 @@ with tab_control:
             ]
             if meaningful_logs:
                 last_msg = meaningful_logs[-1]
-                if "ERROR" in last_msg or "ПОМИЛКА" in last_msg:
+                last_msg_upper = last_msg.upper()
+                if "ERROR" in last_msg_upper or "ПОМИЛКА" in last_msg_upper or "❌" in last_msg:
                     st.error(last_msg)
-                elif "WARNING" in last_msg or "ПОПЕРЕДЖЕННЯ" in last_msg:
+                elif "WARNING" in last_msg_upper or "ПОПЕРЕДЖЕННЯ" in last_msg_upper:
                     st.warning(last_msg)
                 else:
                     st.success(last_msg)
