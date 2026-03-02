@@ -46,7 +46,7 @@ lab_options = {lab["id"]: lab["name"] for lab in config.get("labs", [])}
 selected_lab_id = st.sidebar.selectbox(
     t(T.SELECT_LAB, lang),
     options=list(lab_options.keys()),
-    format_func=lambda x: lab_options[x],
+    format_func=lambda x: f"{t(T.LAB_PREFIX, lang)} {x}",
 )
 
 lab_config = get_lab_config(config, selected_lab_id)

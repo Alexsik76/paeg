@@ -33,6 +33,7 @@ class T:
     ELECTION_HELD = "election_held"
     ELECTION_NOT_HELD = "election_not_held"
     TASKS = "tasks"
+    LAB_PREFIX = "lab_prefix"
 
     # Scenarios (These map from config.yaml IDs)
     SCENARIO_NORMAL = "scenario_normal"
@@ -113,6 +114,7 @@ translations: Dict[str, Dict[str, str]] = {
         T.TERMINAL_LOGS: "Terminal Logs",
         T.RESULTS: "Results",
         T.TASKS: "Tasks",
+        T.LAB_PREFIX: "Lab",
         T.SELECT_LAB: "Select Lab Protocol",
         T.SELECT_LANGUAGE: "Language / Мова",
         T.VOTE_SETTINGS: "Vote Settings",
@@ -200,6 +202,7 @@ translations: Dict[str, Dict[str, str]] = {
         T.TERMINAL_LOGS: "Логи (Термінал)",
         T.RESULTS: "Результати",
         T.TASKS: "Завдання",
+        T.LAB_PREFIX: "Лабораторна",
         T.SELECT_LAB: "Оберіть протокол",
         T.SELECT_LANGUAGE: "Language / Мова",
         T.VOTE_SETTINGS: "Налаштування голосування",
