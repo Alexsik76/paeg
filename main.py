@@ -50,9 +50,12 @@ selected_lab_id = st.sidebar.selectbox(
     format_func=lambda x: f"{t(T.LAB_PREFIX, lang)} {x}",
 )
 
+if selected_lab_id is None:
+    st.stop()
+
 lab_config = get_lab_config(config, selected_lab_id)
 
-st.title(f"{t(T.APP_TITLE, lang)} {lab_config['name']}")
+st.title(f"{t(T.APP_TITLE, lang)} {t(lab_config['name'], lang)}")
 
 
 def reset_lab_state():
@@ -166,8 +169,12 @@ with tab_control:
 
         # Scenario execution logic
         if st.button(t(T.EXECUTE_SCENARIO, lang), type="primary"):
+            if scenario is None or selected_voter_id is None or selected_candidate is None:
+                st.error("Будь ласка, оберіть всі опції." if lang == "Українська" else "Please select all options.")
+                st.stop()
+
             st.session_state.logs.append(f"--- {scenarios[scenario]} ---")
-            cvk: SimpleCVK = st.session_state.cvk
+            cvk = st.session_state.cvk
 
             # Keep track of the number of logs before execution to find the newly added ones
             initial_log_count = len(st.session_state.logs)
@@ -283,9 +290,10 @@ with tab_control:
             ]
             if meaningful_logs:
                 last_msg = meaningful_logs[-1]
-                if "ERROR" in last_msg or "ПОМИЛКА" in last_msg:
+                last_msg_upper = last_msg.upper()
+                if "ERROR" in last_msg_upper or "ПОМИЛКА" in last_msg_upper or "❌" in last_msg:
                     st.error(last_msg)
-                elif "WARNING" in last_msg or "ПОПЕРЕДЖЕННЯ" in last_msg:
+                elif "WARNING" in last_msg_upper or "ПОПЕРЕДЖЕННЯ" in last_msg_upper:
                     st.warning(last_msg)
                 else:
                     st.success(last_msg)

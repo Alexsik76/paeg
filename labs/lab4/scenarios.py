@@ -1,6 +1,7 @@
 import json
 import random
-from typing import Dict, List, Any, Optional
+import base64
+from typing import Dict, List
 
 from labs.lab4.protocol import VotingCommission, SplitFactorCVK, SplitFactorVoter
 from core.i18n import t, T
@@ -17,6 +18,7 @@ def run_simulate_all_factor(
 ) -> List[str]:
     logs = [t(T.SIMULATING_ALL, lang)]
     success_count = 0
+
     total_count = len(voters)
 
     key_params = cvk.get_key_params()
@@ -34,26 +36,34 @@ def run_simulate_all_factor(
         v1_ok = vc1.process_partial_ballot(p1, lang)
         if v1_ok:
             logs.append(t(T.FACTOR_VC_VERIFIED, lang))
+        else:
+            msg = "Голос відхилено ВК-1 (Дублікат)" if lang == "Українська" else "Vote rejected by VC-1 (Duplicate)"
+            logs.append(f"❌ {msg}")
 
         logs.append(t(T.FACTOR_SEND_V2, lang))
         v2_ok = vc2.process_partial_ballot(p2, lang)
         if v2_ok:
             logs.append(t(T.FACTOR_VC_VERIFIED, lang))
+        else:
+            msg = "Голос відхилено ВК-2 (Дублікат)" if lang == "Українська" else "Vote rejected by VC-2 (Duplicate)"
+            logs.append(f"❌ {msg}")
+
+        if v1_ok and v2_ok:
+            success_count += 1
 
     # 3. CVK joins and tallies
     cvk.process_and_tally(vc1.get_partial_ballots(), vc2.get_partial_ballots(), lang)
     logs.extend(cvk.get_logs())
 
     # Calculate success based on CVK tallies
-    total_tallied = sum(cvk.tallies.values())
-    if total_tallied == total_count:
+    if success_count == total_count:
         logs.append(t(T.SIMULATION_OK, lang, count=total_count))
     else:
         logs.append(
             t(
                 T.SIMULATION_ERRORS,
                 lang,
-                success_count=total_tallied,
+                success_count=success_count,
                 total_count=total_count,
             )
         )
@@ -94,7 +104,7 @@ def run_single_voter_scenario_factor(
         # Let's say VC-1 changes f1 value.
 
         # Extract original factor
-        orig_msg = json.loads(active_voter.b64decode(p1["message"]).decode("utf-8"))
+        orig_msg = json.loads(base64.b64decode(p1["message"]).decode("utf-8"))
         orig_val = orig_msg["encrypted_factor"]
 
         # Tampered val (random multiplier)
@@ -117,25 +127,24 @@ def run_single_voter_scenario_factor(
     else:
         # Normal flow
         logs.append(t(T.FACTOR_SENDING_V1, lang))
-        vc1.process_partial_ballot(p1, lang)
-        logs.append(t(T.FACTOR_VC_VERIFIED, lang))
+        if vc1.process_partial_ballot(p1, lang):
+            logs.append(t(T.FACTOR_VC_VERIFIED, lang))
+        else:
+            msg = "Error: Vote rejected by VC-1 (Duplicate or Invalid)." if lang == "English" else "Помилка: Голос відхилено ВК-1 (Дублікат або невірний підпис)."
+            logs.append(f"❌ {msg}")
+            return logs
 
     # VC-2 always receives its factor
     logs.append(t(T.FACTOR_SEND_V2, lang))
-    vc2.process_partial_ballot(p2, lang)
-    logs.append(t(T.FACTOR_VC_VERIFIED, lang))
+    if vc2.process_partial_ballot(p2, lang):
+        logs.append(t(T.FACTOR_VC_VERIFIED, lang))
+    else:
+        msg = "Error: Vote rejected by VC-2 (Duplicate or Invalid)." if lang == "English" else "Помилка: Голос відхилено ВК-2 (Дублікат або невірний підпис)."
+        logs.append(f"❌ {msg}")
+        return logs
 
     # 3. CVK joins and tallies
     cvk.process_and_tally(vc1.get_partial_ballots(), vc2.get_partial_ballots(), lang)
     logs.extend(cvk.get_logs())
 
     return logs
-
-
-# Add b64decode/encode wrappers to Voter for tampering logic if needed,
-# but easier to just use base64 import.
-import base64
-
-
-def b64_d(s):
-    return base64.b64decode(s)

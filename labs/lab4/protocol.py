@@ -2,7 +2,7 @@ import json
 import uuid
 import random
 from base64 import b64encode, b64decode
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Set
 
 from labs.base import BaseCVK, BaseVoter
 from core.crypto import RSACryptoSystem
@@ -20,6 +20,7 @@ class VotingCommission:
         self.commission_id = commission_id
         # Stores {anonymous_id: encrypted_factor}
         self.partial_ballots: Dict[str, int] = {}
+        self.voted_keys: Set[str] = set()
 
     def process_partial_ballot(self, payload: Dict[str, Any], lang: str) -> bool:
         """
@@ -29,6 +30,10 @@ class VotingCommission:
             message_bytes = b64decode(payload["message"])
             signature_bytes = b64decode(payload["signature"])
             voter_pub_key_bytes = b64decode(payload["public_key"])
+            voter_pub_key_str = payload["public_key"]
+
+            if voter_pub_key_str in self.voted_keys:
+                return False
 
             voter_pub_key = RSACryptoSystem.load_public_key(voter_pub_key_bytes)
 
@@ -44,6 +49,7 @@ class VotingCommission:
             encrypted_factor = ballot_data["encrypted_factor"]
 
             self.partial_ballots[anon_id] = encrypted_factor
+            self.voted_keys.add(voter_pub_key_str)
             return True
         except Exception:
             return False
@@ -63,23 +69,23 @@ class SplitFactorVoter(BaseVoter):
         self.crypto_system = RSACryptoSystem()
         self.anonymous_id = str(uuid.uuid4())
 
-    def split_id(self, candidate_id_val: int) -> Tuple[int, int]:
+    def split_id(self, candidate_id_val: int, n: int) -> Tuple[int, int]:
         """
-        Finds all divisor pairs and picks one randomly.
+        Splits Candidate ID into two factors using modular arithmetic.
+        f1 = random R
+        f2 = candidate_id * R^(-1) mod n
+        This ensures f1 and f2 look like random noise to VCs.
         """
-        factors = []
-        for i in range(1, int(candidate_id_val**0.5) + 1):
-            if candidate_id_val % i == 0:
-                factors.append((i, candidate_id_val // i))
-
-        # Add reverse pairs as well (e.g., if (2, 6) is there, add (6, 2))
-        all_pairs = []
-        for f1, f2 in factors:
-            all_pairs.append((f1, f2))
-            if f1 != f2:
-                all_pairs.append((f2, f1))
-
-        return random.choice(all_pairs)
+        while True:
+            # Generate random R in [2, n-1]
+            r = random.randint(2, n - 1)
+            try:
+                # Calculate modular inverse of r modulo n
+                r_inv = pow(r, -1, n)
+                return r, (candidate_id_val * r_inv) % n
+            except ValueError:
+                # r is not invertible (shares factor with n), try again
+                continue
 
     def vote(
         self,
@@ -89,8 +95,8 @@ class SplitFactorVoter(BaseVoter):
         """
         Splits ID, encrypts factors raw, signs them, and prepares 2 payloads.
         """
-        f1, f2 = self.split_id(candidate_val)
         n, e = cvk_key_params["n"], cvk_key_params["e"]
+        f1, f2 = self.split_id(candidate_val, n)
 
         # Homomorphic Encryption (Textbook RSA)
         ef1 = RSACryptoSystem.raw_encrypt(n, e, f1)
@@ -130,6 +136,7 @@ class SplitFactorCVK(BaseCVK):
         self.tallies = {candidate: 0 for candidate in candidates}
         self.id_to_candidate = {v: k for k, v in candidate_id_map.items()}
         self.key_params = self.crypto_system.get_key_parameters()
+        self.processed_ids = set()
 
     def get_key_params(self) -> Dict[str, int]:
         return self.key_params
@@ -150,6 +157,9 @@ class SplitFactorCVK(BaseCVK):
         n = self.key_params["n"]
 
         for anon_id in common_ids:
+            if anon_id in self.processed_ids:
+                continue
+
             c1 = vc1_ballots[anon_id]
             c2 = vc2_ballots[anon_id]
 
@@ -168,7 +178,9 @@ class SplitFactorCVK(BaseCVK):
             else:
                 self.log_action(t(T.FACTOR_ERR_TAMPERED, lang, val=decrypted_id))
 
-    def process_vote(self, payload: Any) -> bool:
+            self.processed_ids.add(anon_id)
+
+    def process_vote(self, _: Any) -> bool:
         """
         Implementation of abstract method from BaseCVK.
         In the split-factor protocol, voting is handled via split commissions
