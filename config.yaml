@@ -123,6 +123,28 @@ labs:
       - id: "scenario_tamper_decentralized"
         name: "Ballot Tampering Detection"
         description: "Voter A attempts to modify another voter's ballot during their turn."
-      - id: "scenario_count_decentralized"
-        name: "Ballot Injection/Removal Detection"
-        description: "Voter A attempts to remove a ballot or add an extra one."
+  - id: 6
+    name: "Lab 6: Advanced Protocol (Blind + Split + Hierarchy)"
+    protocol: "lab6_advanced"
+    settings:
+      num_voters: 5
+      candidates:
+        - "Alice (ID 12)"
+        - "Bob (ID 24)"
+      candidate_ids:
+        "Alice (ID 12)": 12
+        "Bob (ID 24)": 24
+      animation_delay: 2
+    scenarios:
+      - id: "scenario_normal_lab6"
+        name: "Normal Vote (Advanced)"
+        description: "Voter uses blind signatures and split parts across LC/MC hierarchy."
+      - id: "scenario_simulate_all_lab6"
+        name: "Simulate Full Election (Advanced)"
+        description: "All 5 voters participate in the multi-level protocol."
+      - id: "scenario_double_vote_lab6"
+        name: "Double Voting Attempt (Advanced)"
+        description: "Voter tries to get extra signatures or reuse part IDs."
+      - id: "scenario_tamper_lab6"
+        name: "Tampered Split Attempt"
+        description: "Attacker modifies a part or signature before LC verification."

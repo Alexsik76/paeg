@@ -10,8 +10,16 @@ from labs.lab2.protocol import BlindCVK, BlindVoter
 from labs.lab3.protocol import RegistrationBureau, SplitCVK, SplitVoter
 from labs.lab4.protocol import VotingCommission, SplitFactorCVK, SplitFactorVoter
 from labs.lab5.protocol import DecentralizedVoter
+from labs.lab6.protocol import (
+    BlindSplitCVK,
+    BlindSplitVoter,
+    RegistrationBureau as RB6,
+    MiddleLevelCommission,
+    LowLevelCommission,
+)
 from ui.components import render_terminal, render_results, render_tasks
 from core.i18n import t, T
+from ui.visualizer import SVGProtocolVisualizer
 
 
 st.set_page_config(
@@ -67,7 +75,7 @@ def reset_lab_state():
     st.session_state.voting_conducted = False
 
     # Explicitly clear lab-specific components to avoid leakage
-    for key in ["br", "vc1", "vc2"]:
+    for key in ["br", "vc1", "vc2", "rb", "mcs", "lcs"]:
         if key in st.session_state:
             del st.session_state[key]
 
@@ -115,6 +123,38 @@ def reset_lab_state():
         }
         init_msg = t(T.DECENTRALIZED_INIT, lang)
 
+    elif protocol_type == "lab6_advanced":
+        candidate_ids = lab_config.get("settings", {}).get("candidate_ids", {})
+        st.session_state.cvk = BlindSplitCVK(
+            candidates=candidates, candidate_id_map=candidate_ids
+        )
+        st.session_state.rb = RB6()
+        st.session_state.mcs = [
+            MiddleLevelCommission(
+                1,
+                st.session_state.cvk.crypto_system,
+                candidates,
+                st.session_state.cvk.id_to_candidate,
+            ),
+            MiddleLevelCommission(
+                2,
+                st.session_state.cvk.crypto_system,
+                candidates,
+                st.session_state.cvk.id_to_candidate,
+            ),
+        ]
+        st.session_state.lcs = [
+            LowLevelCommission(1),
+            LowLevelCommission(2),
+            LowLevelCommission(3),
+            LowLevelCommission(4),
+        ]
+        st.session_state.voters = {
+            f"voter_{i}": BlindSplitVoter(voter_id=f"voter_{i}")
+            for i in range(1, num_voters + 1)
+        }
+        init_msg = "ЦВК, Палата реєстрації та комісії ініціалізовані для комбінованого протоколу."
+
     else:
         st.session_state.cvk = SimpleCVK(candidates=candidates)
         st.session_state.voters = {
@@ -145,15 +185,27 @@ if "lab_id" not in st.session_state or st.session_state.lab_id != selected_lab_i
 st.session_state.cvk.set_language(lang)
 
 # UI Layout: Tabs
-# Added a visual spacer for the Tasks tab to make it stand out
-tab_control, tab_terminal, tab_results, tab_tasks = st.tabs(
-    [
-        t(T.CONTROL_PANEL, lang),
-        t(T.TERMINAL_LOGS, lang),
-        t(T.RESULTS, lang),
-        " " * 5 + "📋 " + t(T.TASKS, lang),
-    ]
-)
+tab_names = [
+    t(T.CONTROL_PANEL, lang),
+    t(T.TERMINAL_LOGS, lang),
+    t(T.RESULTS, lang),
+]
+
+if str(selected_lab_id) == "6":
+    tab_names.append(t(T.SCHEME, lang))
+
+tab_names.append(" " * 5 + "📋 " + t(T.TASKS, lang))
+
+tabs = st.tabs(tab_names)
+tab_control = tabs[0]
+tab_terminal = tabs[1]
+tab_results = tabs[2]
+
+if str(selected_lab_id) == "6":
+    tab_scheme = tabs[3]
+    tab_tasks = tabs[4]
+else:
+    tab_tasks = tabs[3]
 
 
 with tab_control:
@@ -194,6 +246,8 @@ with tab_control:
                 selected_candidate,
                 lab_config,
                 lang,
+                visualizer=st.session_state.get("visualizer"),
+                graph_placeholder=st.session_state.get("graph_placeholder"),
             )
 
     # New Status Panel directly inside Control Panel
@@ -231,6 +285,64 @@ with tab_terminal:
 
 with tab_results:
     render_results(st.session_state.cvk.tallies, lang)
+
+
+if str(selected_lab_id) == "6":
+    with tab_scheme:
+        st.subheader(t(T.SCHEME, lang))
+
+        # Stable containers for layout
+        controls_container = st.container()
+        graph_placeholder = st.empty()
+
+        # Initialize and Render Visualizer at the top to ensure it's in session_state before button press
+        from ui.visualizer import SVGProtocolVisualizer
+
+        animation_delay = lab_config.get("settings", {}).get("animation_delay", 1.5)
+        if "visualizer" not in st.session_state or not isinstance(
+            st.session_state.visualizer, SVGProtocolVisualizer
+        ):
+            st.session_state.visualizer = SVGProtocolVisualizer(
+                duration=animation_delay
+            )
+        else:
+            st.session_state.visualizer.duration = animation_delay
+
+        st.session_state.visualizer.render(graph_placeholder)
+
+        # Quick Controls for the Scheme tab
+        with controls_container:
+            with st.expander(t(T.VOTE_SETTINGS, lang), expanded=True):
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    st.markdown(f"### {t(T.SCENARIO_NORMAL_LAB6, lang)}")
+                with col2:
+                    # st.write("")  # Padding
+                    if st.button(t(T.EXECUTE_SCENARIO, lang), key="scheme_execute"):
+                        from ui.scenario_handler import handle_scenario_execution
+
+                        # Use default voter/candidate for the visual scheme
+                        voter_id = (
+                            list(st.session_state.voters.keys())[0]
+                            if st.session_state.voters
+                            else "voter_1"
+                        )
+                        candidate = lab_config.get("settings", {}).get(
+                            "candidates", ["Alice (ID 12)"]
+                        )[0]
+
+                        handle_scenario_execution(
+                            "scenario_normal_lab6",
+                            {"scenario_normal_lab6": t(T.SCENARIO_NORMAL_LAB6, lang)},
+                            voter_id,
+                            candidate,
+                            lab_config,
+                            lang,
+                            visualizer=st.session_state.get("visualizer"),
+                            graph_placeholder=graph_placeholder,
+                            show_feedback=False,
+                        )
+                        st.rerun()
 
 
 with tab_tasks:

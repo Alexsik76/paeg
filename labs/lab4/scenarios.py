@@ -38,24 +38,26 @@ def run_simulate_all_factor(
         if v1_ok:
             logs.append(t(T.FACTOR_VC_VERIFIED, lang))
         else:
-            msg = (
-                "Голос відхилено ВК-1 (Дублікат)"
-                if lang == "Українська"
-                else "Vote rejected by VC-1 (Duplicate)"
+            logs.append(
+                t(
+                    T.VC_ERR_DUPLICATE,
+                    lang,
+                    id="ВК-1" if lang == "Українська" else "VC-1",
+                )
             )
-            logs.append(f"❌ {msg}")
 
         logs.append(t(T.FACTOR_SEND_V2, lang))
         v2_ok = vc2.process_partial_ballot(p2, lang)
         if v2_ok:
             logs.append(t(T.FACTOR_VC_VERIFIED, lang))
         else:
-            msg = (
-                "Голос відхилено ВК-2 (Дублікат)"
-                if lang == "Українська"
-                else "Vote rejected by VC-2 (Duplicate)"
+            logs.append(
+                t(
+                    T.VC_ERR_DUPLICATE,
+                    lang,
+                    id="ВК-2" if lang == "Українська" else "VC-2",
+                )
             )
-            logs.append(f"❌ {msg}")
 
         if v1_ok and v2_ok:
             success_count += 1
@@ -181,12 +183,13 @@ def run_single_voter_scenario_factor(
         if vc1.process_partial_ballot(p1, lang):
             logs.append(t(T.FACTOR_VC_VERIFIED, lang))
         else:
-            msg = (
-                "Error: Vote rejected by VC-1 (Duplicate or Invalid)."
-                if lang == "English"
-                else "Помилка: Голос відхилено ВК-1 (Дублікат або невірний підпис)."
+            logs.append(
+                t(
+                    T.VC_ERR_DUPLICATE,
+                    lang,
+                    id="ВК-1" if lang == "Українська" else "VC-1",
+                )
             )
-            logs.append(f"❌ {msg}")
             return logs
 
     # VC-2 always receives its factor
@@ -194,16 +197,21 @@ def run_single_voter_scenario_factor(
     if vc2.process_partial_ballot(p2, lang):
         logs.append(t(T.FACTOR_VC_VERIFIED, lang))
     else:
-        msg = (
-            "Error: Vote rejected by VC-2 (Duplicate or Invalid)."
-            if lang == "English"
-            else "Помилка: Голос відхилено ВК-2 (Дублікат або невірний підпис)."
+        logs.append(
+            t(T.VC_ERR_DUPLICATE, lang, id="ВК-2" if lang == "Українська" else "VC-2")
         )
-        logs.append(f"❌ {msg}")
         return logs
 
     # 3. CVK joins and tallies
     cvk.process_and_tally(vc1.get_partial_ballots(), vc2.get_partial_ballots(), lang)
-    logs.extend(cvk.get_logs())
+    cvk_logs = cvk.get_logs()
+    logs.extend(cvk_logs)
+
+    # Check if the last log from CVK was a success to add the final standard success message
+    if cvk_logs and not any(
+        x in cvk_logs[-1].upper()
+        for x in ["ERROR", "ПОМИЛКА", "WARNING", "ПОПЕРЕДЖЕННЯ"]
+    ):
+        logs.append(t(T.VOTE_TALLIED, lang, voter=selected_voter_id))
 
     return logs

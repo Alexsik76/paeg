@@ -34,6 +34,7 @@ class T:
     ELECTION_NOT_HELD = "election_not_held"
     TASKS = "tasks"
     LAB_PREFIX = "lab_prefix"
+    SCHEME = "scheme"
 
     # Scenarios (These map from config.yaml IDs)
     SCENARIO_NORMAL = "scenario_normal"
@@ -60,6 +61,8 @@ class T:
     SIMULATING_ALL = "simulating_all"
     SIMULATION_OK = "simulation_ok"
     SIMULATION_ERRORS = "simulation_errors"
+    VC_ERR_DUPLICATE = "vc_err_duplicate"
+    VC_ERR_INVALID_SIG = "vc_err_invalid_sig"
 
     # Lab 2: Blind Signature Protocol
     SCENARIO_NORMAL_BLIND = "scenario_normal_blind"
@@ -139,6 +142,31 @@ class T:
     DECENTRALIZED_VOTE_FOUND = "decentralized_vote_found"
     ERR_SELECT_ALL = "err_select_all"
 
+    # Lab 6: Advanced Protocol (Blind + Split)
+    SCENARIO_NORMAL_LAB6 = "scenario_normal_lab6"
+    SCENARIO_SIMULATE_ALL_LAB6 = "scenario_simulate_all_lab6"
+    SCENARIO_DOUBLE_VOTE_LAB6 = "scenario_double_vote_lab6"
+    SCENARIO_TAMPER_LAB6 = "scenario_tamper_lab6"
+    LAB6_BR_VERIFIED = "lab6_br_verified"
+    LAB6_VOTER_PREPARED_PARTS = "lab6_voter_prepared_parts"
+    LAB6_CVK_SIGNED_PARTS = "lab6_cvk_signed_parts"
+    LAB6_CVK_DENIED_SIGNATURE = "lab6_cvk_denied_signature"
+    LAB6_VOTER_UNBLINDED = "lab6_voter_unblinded"
+    LAB6_LCS_PARTS_ACCEPTED = "lab6_lcs_parts_accepted"
+    LAB6_LCS_PARTS_REJECTED = "lab6_lcs_parts_rejected"
+    LAB6_MC_DECRYPTED = "lab6_mc_decrypted"
+    LAB6_MC_DUPLICATE_ANON = "lab6_mc_duplicate_anon"
+    LAB6_MC_NO_BALLOTS = "lab6_mc_no_ballots"
+    LAB6_CEC_FINAL_TALLY = "lab6_cec_final_tally"
+    LAB6_AGGREGATING = "lab6_aggregating"
+    LAB6_SENDING_TO_CEC = "lab6_sending_to_cec"
+    LAB6_REQ_REG = "lab6_req_reg"
+    LAB6_REQ_SIGN = "lab6_req_sign"
+    LAB6_VOTER_PREPARING = "lab6_voter_preparing"
+    LAB6_VOTER_UNBLINDING = "lab6_voter_unblinding"
+    LAB6_CEC_TALLYING = "lab6_cec_tallying"
+    VOTING_COMPLETED = "voting_completed"
+
 
 # Translations
 translations: Dict[str, Dict[str, str]] = {
@@ -147,6 +175,7 @@ translations: Dict[str, Dict[str, str]] = {
         T.CONTROL_PANEL: "Control Panel",
         T.TERMINAL_LOGS: "Terminal Logs",
         T.RESULTS: "Results",
+        T.SCHEME: "Scheme",
         T.TASKS: "Tasks",
         T.LAB_PREFIX: "Lab",
         T.SELECT_LAB: "Select Lab Protocol",
@@ -191,6 +220,8 @@ translations: Dict[str, Dict[str, str]] = {
         T.SIMULATING_ALL: "--- Simulating full election for all registered voters ---",
         T.SIMULATION_OK: "Full election simulation completed. All {count} votes processed successfully.",
         T.SIMULATION_ERRORS: "WARNING: Full election simulation completed with violations. {success_count} of {total_count} votes tallied.",
+        T.VC_ERR_DUPLICATE: "ERROR: Vote rejected by {id} (Duplicate).",
+        T.VC_ERR_INVALID_SIG: "ERROR: Vote rejected by {id} (Invalid signature).",
         T.SCENARIO_NORMAL_BLIND: "Normal Vote with Blind Signature",
         T.SCENARIO_SIMULATE_ALL_BLIND: "Simulate Full Election (Blind)",
         T.SCENARIO_DOUBLE_REQUEST_BLIND: "Double Signature Request Attempt",
@@ -253,18 +284,42 @@ translations: Dict[str, Dict[str, str]] = {
         T.DECENTRALIZED_VERIFYING_RP: "Voter {voter} verified their RP is present.",
         T.DECENTRALIZED_SHUFFLING: "Voter {voter} shuffled the ballots.",
         T.DECENTRALIZED_SUCCESS: "Decentralized protocol completed successfully.",
-        T.DECENTRALIZED_ERR_RP_MISSING: "CRITICAL: Voter {voter} cannot find their RP! Protocol aborted.",
-        T.DECENTRALIZED_ERR_COUNT: "CRITICAL: Voter {voter} detected incorrect ballot count ({count} instead of {expected})! Protocol aborted.",
-        T.DECENTRALIZED_ERR_TAMPERED: "CRITICAL: Voter {voter} detected signature mismatch or tampering! Protocol aborted.",
+        T.DECENTRALIZED_ERR_RP_MISSING: "ERROR: Voter {voter} could not find their RP! Protocol aborted.",
+        T.DECENTRALIZED_ERR_COUNT: "ERROR: Voter {voter} detected incorrect ballot count ({count} instead of {expected})! Protocol aborted.",
+        T.DECENTRALIZED_ERR_TAMPERED: "ERROR: Voter {voter} detected signature mismatch or tampering! Protocol aborted.",
         T.DECENTRALIZED_FINAL_TALLY: "Final votes tallying (Voter E):",
         T.DECENTRALIZED_VOTE_FOUND: "• Found ballot for: {cand}",
         T.ERR_SELECT_ALL: "Please select all options.",
+        T.SCENARIO_NORMAL_LAB6: "Normal Vote (Advanced: Blind + Split)",
+        T.SCENARIO_SIMULATE_ALL_LAB6: "Simulate Full Election (Advanced)",
+        T.SCENARIO_DOUBLE_VOTE_LAB6: "Double Voting Attempt (Advanced)",
+        T.SCENARIO_TAMPER_LAB6: "Tampered Split Attempt (Advanced)",
+        T.LAB6_BR_VERIFIED: "Registration Bureau: Voter {voter} verified.",
+        T.LAB6_VOTER_PREPARED_PARTS: "Voter: Prepared 2 blinded ballot parts.",
+        T.LAB6_CVK_SIGNED_PARTS: "CVK: Provided blind signatures for {voter}.",
+        T.LAB6_CVK_DENIED_SIGNATURE: "ERROR: CVK denied signature for {voter}. Duplicate request or not registered.",
+        T.LAB6_VOTER_UNBLINDED: "Voter: Unblinded signatures.",
+        T.LAB6_LCS_PARTS_ACCEPTED: "Low-Level Commissions: Parts for ID {anon_id} verified and accepted.",
+        T.LAB6_LCS_PARTS_REJECTED: "ERROR: Digital signature verification failed for partial ballot ID {anon_id}.",
+        T.LAB6_MC_DECRYPTED: "Middle-Level Commission {id}: Decrypted ballot for ID {anon_id}. Result: {candidate} (ID {cand_id})",
+        T.LAB6_MC_DUPLICATE_ANON: "ERROR: Duplicate anonymous ID {anon_id} detected at Middle-Level Commission.",
+        T.LAB6_MC_NO_BALLOTS: "Middle-Level Commission {id}: No valid ballots to aggregate.",
+        T.LAB6_CEC_FINAL_TALLY: "CEC: Final results updated. {candidate}: {count}",
+        T.LAB6_AGGREGATING: "MC: Aggregating partial ballots...",
+        T.LAB6_SENDING_TO_CEC: "MC: Sending results to CEC...",
+        T.LAB6_REQ_REG: "Voter: Requesting registration...",
+        T.LAB6_REQ_SIGN: "Voter: Requesting blind signature...",
+        T.LAB6_VOTER_PREPARING: "Voter: Preparing split ballot parts...",
+        T.LAB6_VOTER_UNBLINDING: "Voter: Unblinding signatures...",
+        T.LAB6_CEC_TALLYING: "CEC: Finalizing election tally...",
+        T.VOTING_COMPLETED: "Voting completed!",
     },
     "Українська": {
         T.APP_TITLE: "Симуляція:",
         T.CONTROL_PANEL: "Панель керування",
         T.TERMINAL_LOGS: "Логи (Термінал)",
         T.RESULTS: "Результати",
+        T.SCHEME: "Схема",
         T.TASKS: "Завдання",
         T.LAB_PREFIX: "Лабораторна",
         T.SELECT_LAB: "Оберіть протокол",
@@ -309,6 +364,8 @@ translations: Dict[str, Dict[str, str]] = {
         T.SIMULATING_ALL: "--- Симуляція повних виборів для всіх зареєстрованих виборців ---",
         T.SIMULATION_OK: "Симуляцію виборів завершено. Усі {count} голосів успішно зараховано ЦВК.",
         T.SIMULATION_ERRORS: "ПОПЕРЕДЖЕННЯ: Симуляцію виборів завершено з порушеннями. Зараховано {success_count} з {total_count} голосів.",
+        T.VC_ERR_DUPLICATE: "ПОМИЛКА: Голос відхилено {id} (Дублікат).",
+        T.VC_ERR_INVALID_SIG: "ПОМИЛКА: Голос відхилено {id} (Недійсний підпис).",
         T.SCENARIO_NORMAL_BLIND: "Нормальне голосування (Сліпий підпис)",
         T.SCENARIO_SIMULATE_ALL_BLIND: "Симулювати повні вибори (Сліпий підпис)",
         T.SCENARIO_DOUBLE_REQUEST_BLIND: "Спроба подвійного запиту на підпис",
@@ -371,12 +428,35 @@ translations: Dict[str, Dict[str, str]] = {
         T.DECENTRALIZED_VERIFYING_RP: "Виборець {voter} підтвердив наявність свого RP.",
         T.DECENTRALIZED_SHUFFLING: "Виборець {voter} перемішав бюлетені.",
         T.DECENTRALIZED_SUCCESS: "Децентралізований протокол успішно завершено.",
-        T.DECENTRALIZED_ERR_RP_MISSING: "КРИТИЧНА ПОМИЛКА: Виборець {voter} не знайшов свій RP! Протокол зірвано.",
-        T.DECENTRALIZED_ERR_COUNT: "КРИТИЧНА ПОМИЛКА: Виборець {voter} виявив неправильну кількість бюлетенів ({count} замість {expected})! Протокол зірвано.",
-        T.DECENTRALIZED_ERR_TAMPERED: "КРИТИЧНА ПОМИЛКА: Виборець {voter} виявив пошкоджений бюлетень або невірний підпис! Протокол зірвано.",
+        T.DECENTRALIZED_ERR_RP_MISSING: "ПОМИЛКА: Виборець {voter} не знайшов свій RP! Протокол зірвано.",
+        T.DECENTRALIZED_ERR_COUNT: "ПОМИЛКА: Виборець {voter} виявив неправильну кількість бюлетенів ({count} замість {expected})! Протокол зірвано.",
+        T.DECENTRALIZED_ERR_TAMPERED: "ПОМИЛКА: Виборець {voter} виявив пошкоджений бюлетень або невірний підпис! Протокол зірвано.",
         T.DECENTRALIZED_FINAL_TALLY: "Фінальний підрахунок голосів (Виборець Е):",
         T.DECENTRALIZED_VOTE_FOUND: "• Знайдено бюлетень за: {cand}",
         T.ERR_SELECT_ALL: "Будь ласка, оберіть всі опції.",
+        T.SCENARIO_NORMAL_LAB6: "Нормальне голосування (Blind + Split)",
+        T.SCENARIO_SIMULATE_ALL_LAB6: "Симулювати повні вибори (Advanced)",
+        T.SCENARIO_DOUBLE_VOTE_LAB6: "Спроба подвійного голосування (Advanced)",
+        T.SCENARIO_TAMPER_LAB6: "Спроба маніпуляції часткою (Advanced)",
+        T.LAB6_BR_VERIFIED: "Бюро реєстрації: Виборця {voter} перевірено.",
+        T.LAB6_VOTER_PREPARED_PARTS: "Виборець: Підготовлено 2 замасковані частини бюлетеня.",
+        T.LAB6_CVK_SIGNED_PARTS: "ЦВК: Надано сліпі підписи для виборця {voter}.",
+        T.LAB6_CVK_DENIED_SIGNATURE: "ПОМИЛКА: ЦВК відмовила у підписі для {voter}. Повторний запит або виборець не зареєстрований.",
+        T.LAB6_VOTER_UNBLINDED: "Виборець: Знято маскування з підписів.",
+        T.LAB6_LCS_PARTS_ACCEPTED: "Комісії низького рівня: Частини для ID {anon_id} перевірено та прийнято.",
+        T.LAB6_LCS_PARTS_REJECTED: "ПОМИЛКА: Перевірка ЕЦП не пройдена для частини бюлетеня ID {anon_id}.",
+        T.LAB6_MC_DECRYPTED: "Комісія середнього рівня {id}: Розшифровано бюлетень ID {anon_id}. Результат: {candidate} (ID {cand_id})",
+        T.LAB6_MC_DUPLICATE_ANON: "ПОМИЛКА: Виявлено повторне використання анонімного ID {anon_id} у Комісії середнього рівня.",
+        T.LAB6_MC_NO_BALLOTS: "Комісія середнього рівня {id}: Немає нових бюлетенів для агрегації.",
+        T.LAB6_CEC_FINAL_TALLY: "ЦВК: Фінальні результати оновлено. {candidate}: {count}",
+        T.LAB6_AGGREGATING: "ВК: Агрегація частин бюлетенів...",
+        T.LAB6_SENDING_TO_CEC: "ВК: Надсилання результатів до ЦВК...",
+        T.LAB6_REQ_REG: "Виборець: Запит на реєстрацію...",
+        T.LAB6_REQ_SIGN: "Виборець: Запит на сліпий підпис...",
+        T.LAB6_VOTER_PREPARING: "Виборець: Підготовка частин розщепленого бюлетеня...",
+        T.LAB6_VOTER_UNBLINDING: "Виборець: Зняття засліплення з підписів...",
+        T.LAB6_CEC_TALLYING: "ЦВК: Фіналізація підрахунку голосів...",
+        T.VOTING_COMPLETED: "Голосування завершено!",
     },
 }
 

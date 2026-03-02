@@ -184,7 +184,8 @@ def run_single_voter_scenario_blind(
             logs.append(t(T.BLIND_CASTING_VOTE, lang, candidate=selected_candidate))
             payload = active_voter.vote(selected_candidate, cvk_pub_pem)
 
-            cvk.process_vote(payload, lang)
+            if cvk.process_vote(payload, lang):
+                logs.append(t(T.VOTE_TALLIED, lang, voter=selected_voter_id))
             logs.extend(cvk.get_logs())
 
             if scenario_id == "scenario_double_vote_blind":
