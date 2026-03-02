@@ -145,7 +145,13 @@ def run_single_voter_scenario_split(
             logs.extend(cvk.get_logs())
             return True
         except ValueError as e:
-            logs.append(f"Помилка: {str(e)}")
+            err_msg = str(e)
+            if "INVALID_RN" in err_msg:
+                logs.append(t(T.ERR_INVALID_RN, lang))
+            elif "RN_ALREADY_USED" in err_msg:
+                logs.append(t(T.ERR_RN_ALREADY_USED, lang))
+            else:
+                logs.append(t(T.ERR_PROCESS_VOTE, lang, error=err_msg))
             return False
 
     if scenario_id == "scenario_double_rn_split":
@@ -207,5 +213,6 @@ def run_single_voter_scenario_split(
         # Default normal
         rn = get_rn_step()
         if rn:
-            vote_step(selected_candidate)
+            if vote_step(selected_candidate):
+                logs.append(t(T.VOTE_TALLIED, lang, voter=selected_voter_id))
         return logs

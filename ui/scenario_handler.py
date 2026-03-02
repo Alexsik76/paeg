@@ -7,10 +7,19 @@ from labs.lab2.scenarios import BlindScenarioRunner
 from labs.lab3.scenarios import SplitScenarioRunner
 from labs.lab4.scenarios import FactorScenarioRunner
 from labs.lab5.scenarios import DecentralizedScenarioRunner
+from labs.lab6.scenarios import Lab6ScenarioRunner
 
 
 def handle_scenario_execution(
-    scenario, scenarios, selected_voter_id, selected_candidate, lab_config, lang
+    scenario,
+    scenarios,
+    selected_voter_id,
+    selected_candidate,
+    lab_config,
+    lang,
+    visualizer=None,
+    graph_placeholder=None,
+    show_feedback: bool = True,
 ):
     """
     Executes the selected voting scenario based on the protocol type.
@@ -52,6 +61,22 @@ def handle_scenario_execution(
             runner = DecentralizedScenarioRunner(
                 voters, candidates, candidate_ids, lang
             )
+        case "lab6_advanced":
+            candidate_ids = lab_config.get("settings", {}).get("candidate_ids", {})
+            animation_delay = lab_config.get("settings", {}).get("animation_delay", 1.0)
+            runner = Lab6ScenarioRunner(
+                st.session_state.cvk,
+                st.session_state.rb,
+                st.session_state.mcs,
+                st.session_state.lcs,
+                voters,
+                candidates,
+                lang,
+                candidate_ids,
+                visualizer=visualizer,
+                graph_placeholder=graph_placeholder,
+                animation_delay=animation_delay,
+            )
         case _:
             runner = SimpleScenarioRunner(
                 st.session_state.cvk, voters, candidates, lang
@@ -92,14 +117,17 @@ def handle_scenario_execution(
             )
             is_warning = "WARNING" in last_msg_upper or "ПОПЕРЕДЖЕННЯ" in last_msg_upper
 
-            if is_error:
-                st.error(last_msg)
-                st.session_state.voting_conducted = False
-            elif is_warning:
-                st.warning(last_msg)
-                st.session_state.voting_conducted = True
+            if show_feedback:
+                if is_error:
+                    st.error(last_msg)
+                    st.session_state.voting_conducted = False
+                elif is_warning:
+                    st.warning(last_msg)
+                    st.session_state.voting_conducted = True
+                else:
+                    st.success(last_msg)
+                    st.session_state.voting_conducted = True
             else:
-                st.success(last_msg)
-                st.session_state.voting_conducted = True
+                st.session_state.voting_conducted = not is_error
         else:
             st.session_state.voting_conducted = False
