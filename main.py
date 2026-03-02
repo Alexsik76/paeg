@@ -9,8 +9,10 @@ from labs.lab1.protocol import SimpleCVK, SimpleVoter
 from labs.lab2.protocol import BlindCVK, BlindVoter
 from labs.lab3.protocol import RegistrationBureau, SplitCVK, SplitVoter
 from labs.lab4.protocol import VotingCommission, SplitFactorCVK, SplitFactorVoter
+from labs.lab5.protocol import DecentralizedVoter
 from ui.components import render_terminal, render_results, render_tasks
 from core.i18n import t, T
+
 
 st.set_page_config(
     page_title="Electronic Voting Simulator",
@@ -64,6 +66,11 @@ def reset_lab_state():
     st.session_state.logs = []
     st.session_state.voting_conducted = False
 
+    # Explicitly clear lab-specific components to avoid leakage
+    for key in ["br", "vc1", "vc2"]:
+        if key in st.session_state:
+            del st.session_state[key]
+
     protocol_type = lab_config.get("protocol", "simple")
     candidates = lab_config.get("settings", {}).get("candidates", [])
     num_voters = lab_config.get("settings", {}).get("num_voters", 5)
@@ -98,6 +105,15 @@ def reset_lab_state():
             for i in range(1, num_voters + 1)
         }
         init_msg = "ВК-1, ВК-2 та ЦВК ініціалізовані для гомоморфного протоколу."
+
+    elif protocol_type == "decentralized":
+        # No CVK in this lab, but we keep a dummy for BaseCVK interface if needed by UI
+        st.session_state.cvk = SimpleCVK(candidates=candidates)
+        st.session_state.voters = {
+            f"voter_{i}": DecentralizedVoter(voter_id=f"voter_{i}")
+            for i in range(1, num_voters + 1)
+        }
+        init_msg = t(T.DECENTRALIZED_INIT, lang)
 
     else:
         st.session_state.cvk = SimpleCVK(candidates=candidates)
@@ -169,136 +185,16 @@ with tab_control:
 
         # Scenario execution logic
         if st.button(t(T.EXECUTE_SCENARIO, lang), type="primary"):
-            if scenario is None or selected_voter_id is None or selected_candidate is None:
-                st.error("Будь ласка, оберіть всі опції." if lang == "Українська" else "Please select all options.")
-                st.stop()
+            from ui.scenario_handler import handle_scenario_execution
 
-            st.session_state.logs.append(f"--- {scenarios[scenario]} ---")
-            cvk = st.session_state.cvk
-
-            # Keep track of the number of logs before execution to find the newly added ones
-            initial_log_count = len(st.session_state.logs)
-
-            protocol_type = lab_config.get("protocol", "simple")
-            if protocol_type == "blind":
-                from labs.lab2.scenarios import (
-                    run_simulate_all_blind,
-                    run_single_voter_scenario_blind,
-                )
-
-                if scenario == "scenario_simulate_all_blind":
-                    vote_processing_logs = run_simulate_all_blind(
-                        cvk, st.session_state.voters, candidates, lang
-                    )
-                else:
-                    vote_processing_logs = run_single_voter_scenario_blind(
-                        cvk,
-                        st.session_state.voters,
-                        scenario,
-                        selected_voter_id,
-                        selected_candidate,
-                        lang,
-                        candidates,
-                    )
-            elif protocol_type == "split":
-                from labs.lab3.scenarios import (
-                    run_simulate_all_split,
-                    run_single_voter_scenario_split,
-                )
-
-                if scenario == "scenario_simulate_all_split":
-                    vote_processing_logs = run_simulate_all_split(
-                        st.session_state.br,
-                        cvk,
-                        st.session_state.voters,
-                        candidates,
-                        lang,
-                    )
-                else:
-                    vote_processing_logs = run_single_voter_scenario_split(
-                        st.session_state.br,
-                        cvk,
-                        st.session_state.voters,
-                        scenario,
-                        selected_voter_id,
-                        selected_candidate,
-                        lang,
-                        candidates,
-                    )
-            elif protocol_type == "factor":
-                from labs.lab4.scenarios import (
-                    run_simulate_all_factor,
-                    run_single_voter_scenario_factor,
-                )
-
-                candidate_ids = lab_config.get("settings", {}).get("candidate_ids", {})
-
-                if scenario == "scenario_simulate_all_factor":
-                    vote_processing_logs = run_simulate_all_factor(
-                        st.session_state.vc1,
-                        st.session_state.vc2,
-                        cvk,
-                        st.session_state.voters,
-                        candidates,
-                        candidate_ids,
-                        lang,
-                    )
-                else:
-                    vote_processing_logs = run_single_voter_scenario_factor(
-                        st.session_state.vc1,
-                        st.session_state.vc2,
-                        cvk,
-                        st.session_state.voters,
-                        scenario,
-                        selected_voter_id,
-                        selected_candidate,
-                        candidate_ids,
-                        lang,
-                    )
-
-            else:
-                from labs.lab1.scenarios import (
-                    run_simulate_all,
-                    run_single_voter_scenario,
-                )
-
-                if scenario == "scenario_simulate_all":
-                    vote_processing_logs = run_simulate_all(
-                        cvk, st.session_state.voters, candidates, lang
-                    )
-                else:
-                    vote_processing_logs = run_single_voter_scenario(
-                        cvk,
-                        st.session_state.voters,
-                        scenario,
-                        selected_voter_id,
-                        selected_candidate,
-                        lang,
-                    )
-
-            st.session_state.logs.extend(vote_processing_logs)
-
-            # Show immediate result of the action under the button
-            # Filter out empty or separator logs to find the real final status
-            meaningful_logs = [
-                log_msg
-                for log_msg in vote_processing_logs
-                if log_msg
-                and not log_msg.startswith("---")
-                and not log_msg.startswith("Спроба")
-                and not log_msg.startswith("Attempt")
-            ]
-            if meaningful_logs:
-                last_msg = meaningful_logs[-1]
-                last_msg_upper = last_msg.upper()
-                if "ERROR" in last_msg_upper or "ПОМИЛКА" in last_msg_upper or "❌" in last_msg:
-                    st.error(last_msg)
-                elif "WARNING" in last_msg_upper or "ПОПЕРЕДЖЕННЯ" in last_msg_upper:
-                    st.warning(last_msg)
-                else:
-                    st.success(last_msg)
-
-            st.session_state.voting_conducted = True
+            handle_scenario_execution(
+                scenario,
+                scenarios,
+                selected_voter_id,
+                selected_candidate,
+                lab_config,
+                lang,
+            )
 
     # New Status Panel directly inside Control Panel
     st.divider()
@@ -310,7 +206,8 @@ with tab_control:
     else:
         st.subheader(t(T.ELECTION_NOT_HELD, lang))
 
-    if st.button(t(T.RESET_VOTES, lang), disabled=not voting_conducted):
+    has_logs = len(st.session_state.get("logs", [])) > 0
+    if st.button(t(T.RESET_VOTES, lang), disabled=not (voting_conducted or has_logs)):
         reset_lab_state()
         st.rerun()
 

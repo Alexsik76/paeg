@@ -67,3 +67,24 @@ class BaseCVK(ABC):
         Returns True if the vote was valid, False otherwise.
         """
         pass
+
+
+class BaseScenarioRunner(ABC):
+    """
+    Abstract Base Class for running lab scenarios.
+    Encapsulates shared state and provides a unified entry point.
+    """
+
+    def __init__(self, voters: Dict[str, BaseVoter], candidates: List[str], lang: str):
+        self.voters = voters
+        self.candidates = candidates
+        self.lang = lang
+
+    @abstractmethod
+    def run(
+        self, scenario_id: str, selected_voter_id: str, selected_candidate: str
+    ) -> List[str]:
+        """
+        Run a specific scenario by its ID.
+        """
+        pass
