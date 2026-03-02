@@ -80,6 +80,29 @@ class T:
     BLIND_ERR_TAMPERED = "blind_err_tampered"
     CVK_INIT_BLIND = "cvk_init_blind"
 
+    # Lab 3: Split Protocol
+    SCENARIO_NORMAL_SPLIT = "scenario_normal_split"
+    SCENARIO_SIMULATE_ALL_SPLIT = "scenario_simulate_all_split"
+    SCENARIO_DOUBLE_RN_SPLIT = "scenario_double_rn_split"
+    SCENARIO_DOUBLE_VOTE_SPLIT = "scenario_double_vote_split"
+    SCENARIO_INVALID_RN_SPLIT = "scenario_invalid_rn_split"
+    SCENARIO_VERIFY_SPLIT = "scenario_verify_split"
+
+    SPLIT_SIMULATING_ALL = "split_simulating_all"
+    SPLIT_BR_INIT = "split_br_init"
+    SPLIT_CVK_INIT = "split_cvk_init"
+    SPLIT_VOTER_REQUESTS_RN = "split_voter_requests_rn"
+    SPLIT_BR_ISSUED_RN = "split_br_issued_rn"
+    SPLIT_ERR_DOUBLE_RN = "split_err_double_rn"
+    SPLIT_VOTER_VOTING = "split_voter_voting"
+    SPLIT_VOTER_FAKE_RN = "split_voter_fake_rn"
+    SPLIT_VOTER_VERIFICATION = "split_voter_verification"
+    SPLIT_VERIFY_SUCCESS = "split_verify_success"
+    SPLIT_VERIFY_FAIL_MISMATCH = "split_verify_fail_mismatch"
+    SPLIT_VERIFY_FAIL_NOT_FOUND = "split_verify_fail_not_found"
+    ERR_INVALID_RN = "err_invalid_rn"
+    ERR_RN_ALREADY_USED = "err_rn_already_used"
+
 
 # Translations
 translations: Dict[str, Dict[str, str]] = {
@@ -148,6 +171,26 @@ translations: Dict[str, Dict[str, str]] = {
         T.BLIND_ERR_ID_USED: "ERROR: Ballot with ID {voter_rnd_id} was already used. Vote rejected.",
         T.BLIND_ERR_TAMPERED: "ERROR: Ballot signature is invalid. Vote rejected.",
         T.CVK_INIT_BLIND: "CVK initialized Blind Signature Protocol.",
+        T.SCENARIO_NORMAL_SPLIT: "Normal Vote (Split Powers)",
+        T.SCENARIO_SIMULATE_ALL_SPLIT: "Simulate Full Election (Split)",
+        T.SCENARIO_DOUBLE_RN_SPLIT: "Double RN Request Attempt",
+        T.SCENARIO_DOUBLE_VOTE_SPLIT: "Double Voting Attempt (Same RN)",
+        T.SCENARIO_INVALID_RN_SPLIT: "Invalid RN Usage Attempt",
+        T.SCENARIO_VERIFY_SPLIT: "Vote Verification Attempt",
+        T.SPLIT_SIMULATING_ALL: "--- Simulating full election (Distribution of Powers) ---",
+        T.SPLIT_BR_INIT: "Registration Bureau initialized.",
+        T.SPLIT_CVK_INIT: "CVK initialized Split Protocol.",
+        T.SPLIT_VOTER_REQUESTS_RN: "Voter {voter} requests Registration Number from Bureau...",
+        T.SPLIT_BR_ISSUED_RN: "Bureau issued secret Registration Number to {voter}.",
+        T.SPLIT_ERR_DOUBLE_RN: "ERROR: Bureau rejected request. Voter {voter} already has an RN.",
+        T.SPLIT_VOTER_VOTING: "Voter {voter} generates anonymous ID and signs ballot...",
+        T.SPLIT_VOTER_FAKE_RN: "Voter {voter} generates a fake unauthorized RN...",
+        T.SPLIT_VOTER_VERIFICATION: "Voter opens CVK's publicly published ballot list to verify their vote...",
+        T.SPLIT_VERIFY_SUCCESS: "✅ VERIFIED: Voter successfully found their anonymous ID. Vote registered correctly for {cand}.",
+        T.SPLIT_VERIFY_FAIL_MISMATCH: "❌ VERIFICATION FAILED: Found anonymous ID but candidate does not match!",
+        T.SPLIT_VERIFY_FAIL_NOT_FOUND: "❌ VERIFICATION FAILED: Anonymous ID not found in published CVK ballots.",
+        T.ERR_INVALID_RN: "ERROR: Registration Number is invalid or not issued by Bureau.",
+        T.ERR_RN_ALREADY_USED: "ERROR: Registration Number was already used. Vote rejected.",
     },
     "Українська": {
         T.APP_TITLE: "Симуляція:",
@@ -214,6 +257,26 @@ translations: Dict[str, Dict[str, str]] = {
         T.BLIND_ERR_ID_USED: "ПОМИЛКА: Бюлетень з ID {voter_rnd_id} вже був використаний. Голос відхилено.",
         T.BLIND_ERR_TAMPERED: "ПОМИЛКА: Недійсний підпис бюлетеня. Голос відхилено.",
         T.CVK_INIT_BLIND: "ЦВК ініціалізувала протокол сліпого підпису.",
+        T.SCENARIO_NORMAL_SPLIT: "Нормальне голосування (Розподіл)",
+        T.SCENARIO_SIMULATE_ALL_SPLIT: "Симулювати повні вибори (Розподіл)",
+        T.SCENARIO_DOUBLE_RN_SPLIT: "Спроба отримання двох RN",
+        T.SCENARIO_DOUBLE_VOTE_SPLIT: "Спроба подвійного голосування (той самий RN)",
+        T.SCENARIO_INVALID_RN_SPLIT: "Спроба використання недійсного RN",
+        T.SCENARIO_VERIFY_SPLIT: "Перевірка свого голосу виборцем",
+        T.SPLIT_SIMULATING_ALL: "--- Симуляція повних виборів (Розподіл повноважень) ---",
+        T.SPLIT_BR_INIT: "Бюро реєстрації (БР) ініціалізовано.",
+        T.SPLIT_CVK_INIT: "ЦВК ініціалізувала протокол Розподілу Повноважень.",
+        T.SPLIT_VOTER_REQUESTS_RN: "Виборець {voter} запитує реєстраційний номер (RN) у Бюро...",
+        T.SPLIT_BR_ISSUED_RN: "Бюро реєстрації видало секретний RN для {voter}.",
+        T.SPLIT_ERR_DOUBLE_RN: "ПОМИЛКА: Бюро відхилило запит. Виборець {voter} вже отримував RN.",
+        T.SPLIT_VOTER_VOTING: "Виборець {voter} генерує анонімний ID та підписує бюлетень...",
+        T.SPLIT_VOTER_FAKE_RN: "Виборець {voter} генерує несправжній RN...",
+        T.SPLIT_VOTER_VERIFICATION: "Виборець відкриває публічний список опублікованих бюлетенів ЦВК для перевірки...",
+        T.SPLIT_VERIFY_SUCCESS: "✅ ПІДТВЕРДЖЕНО: Виборець успішно знайшов свій анонімний ID. Голос за {cand} зараховано вірно.",
+        T.SPLIT_VERIFY_FAIL_MISMATCH: "❌ ПЕРЕВІРКА ПРОВАЛЕНА: Анонімний ID знайдено, але кандидат не збігається!",
+        T.SPLIT_VERIFY_FAIL_NOT_FOUND: "❌ ПЕРЕВІРКА ПРОВАЛЕНА: Анонімний ID не знайдено в опублікованих списках ЦВК.",
+        T.ERR_INVALID_RN: "ПОМИЛКА: ЦВК відхилила бюлетень. RN недійсний (не видавався Бюро).",
+        T.ERR_RN_ALREADY_USED: "ПОМИЛКА: ЦВК відхилила бюлетень. Цей RN вже був використаний.",
     },
 }
 
