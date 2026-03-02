@@ -1,14 +1,10 @@
 import random
 import uuid
-from typing import Dict, Any, List, Tuple, Set
+from typing import Dict, Any, List, Tuple, Set, Optional
 
 from labs.base import BaseCVK, BaseVoter
 from core.crypto import RSACryptoSystem
 from core.i18n import t, T
-
-
-def bytes_to_int(b: bytes) -> int:
-    return int.from_bytes(b, "big")
 
 
 class RegistrationBureau:
@@ -159,7 +155,7 @@ class BlindSplitCVK(BaseCVK):
 
     def sign_blind_parts(
         self, voter_id: str, blinded_parts: Tuple[int, int]
-    ) -> Tuple[int, int]:
+    ) -> Optional[Tuple[int, int]]:
         """
         Signs two blinded particles if the voter is registered and hasn't signed before.
         """

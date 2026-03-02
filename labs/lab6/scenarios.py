@@ -1,8 +1,8 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple, cast
 import random
 import time
 
-from labs.base import BaseScenarioRunner
+from labs.base import BaseScenarioRunner, BaseVoter
 from labs.lab6.protocol import (
     BlindSplitVoter,
     RegistrationBureau,
@@ -28,7 +28,7 @@ class Lab6ScenarioRunner(BaseScenarioRunner):
         graph_placeholder=None,
         animation_delay: float = 1.0,
     ):
-        super().__init__(voters, candidates, lang)
+        super().__init__(cast(Dict[str, BaseVoter], voters), candidates, lang)
         self.cvk = cvk
         self.rb = rb
         self.mcs = mcs
@@ -91,7 +91,7 @@ class Lab6ScenarioRunner(BaseScenarioRunner):
         mc_index: int = 0,
         show_animation: bool = True,
     ) -> bool:
-        voter = self.voters[voter_id]
+        voter = cast(BlindSplitVoter, self.voters[voter_id])
         cand_id = self.candidate_ids[candidate_name]
         params = self.cvk.get_public_params()
         n, e = params["n"], params["e"]
@@ -163,7 +163,7 @@ class Lab6ScenarioRunner(BaseScenarioRunner):
             time.sleep(self.animation_delay)
             self.visualizer.deactivate_all_flows()
 
-        unblinded_sigs = voter.unblind_signatures(signed_blinded, n)
+        unblinded_sigs = voter.unblind_signatures(cast(Tuple[int, int], signed_blinded), n)
         self.log(t(T.LAB6_VOTER_UNBLINDED, self.lang))
 
         # 5. Send to LCs
@@ -366,8 +366,9 @@ class Lab6ScenarioRunner(BaseScenarioRunner):
         # Reset voter's anonymous ID to simulate a fresh attempt
         import uuid
 
-        old_anon_id = self.voters[voter_id].anonymous_id
-        self.voters[voter_id].anonymous_id = str(uuid.uuid4())
+        voter = cast(BlindSplitVoter, self.voters[voter_id])
+        old_anon_id = voter.anonymous_id
+        voter.anonymous_id = str(uuid.uuid4())
 
         success2 = self._execute_vote_flow(voter_id, candidate_name, mc_index=0)
         if not success2:
@@ -398,7 +399,7 @@ class Lab6ScenarioRunner(BaseScenarioRunner):
         return self.logs
 
     def run_tamper(self, voter_id: str, candidate_name: str) -> List[str]:
-        voter = self.voters[voter_id]
+        voter = cast(BlindSplitVoter, self.voters[voter_id])
         cand_id = self.candidate_ids[candidate_name]
         params = self.cvk.get_public_params()
         n, e = params["n"], params["e"]
@@ -408,7 +409,7 @@ class Lab6ScenarioRunner(BaseScenarioRunner):
         # Prepare and get signatures
         blinded_parts = voter.prepare_vote(cand_id, n, e)
         signed_blinded = self.cvk.sign_blind_parts(voter_id, blinded_parts)
-        unblinded_sigs = list(voter.unblind_signatures(signed_blinded, n))
+        unblinded_sigs = list(voter.unblind_signatures(cast(Tuple[int, int], signed_blinded), n))
 
         # Tamper with Part 1 content
         tampered_part = (voter.parts[0] + 1) % n

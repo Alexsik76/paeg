@@ -1,5 +1,4 @@
-from typing import Set
-import streamlit as st
+from typing import Set, Optional, Any
 
 
 class SVGProtocolVisualizer:
@@ -10,7 +9,7 @@ class SVGProtocolVisualizer:
 
     def __init__(self, duration: float = 1.5):
         self.active_routes: Set[str] = set()
-        self.active_node: str = None  # Node id to show spinner around
+        self.active_node: Optional[str] = None  # Node id to show spinner around
         self.message: str = ""
         self.is_final: bool = False  # If True, highlights the message with a border
         self.duration: float = duration
@@ -60,7 +59,7 @@ class SVGProtocolVisualizer:
         self.message = ""
         self.is_final = False
 
-    def render(self, placeholder: st.empty) -> None:
+    def render(self, placeholder: Any) -> None:
         if placeholder is None:
             return
 
