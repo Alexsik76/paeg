@@ -7,7 +7,8 @@ import streamlit as st
 from core.config_parser import load_config, get_lab_config
 from labs.lab1.protocol import SimpleCVK, SimpleVoter
 from labs.lab2.protocol import BlindCVK, BlindVoter
-from ui.components import render_terminal, render_results
+from labs.lab3.protocol import RegistrationBureau, SplitCVK, SplitVoter
+from ui.components import render_terminal, render_results, render_tasks
 from core.i18n import t, T
 
 st.set_page_config(
@@ -70,6 +71,17 @@ def reset_lab_state():
             for i in range(1, num_voters + 1)
         }
         init_msg = t(T.CVK_INIT_BLIND, lang)
+
+    elif protocol_type == "split":
+        st.session_state.cvk = SplitCVK(candidates=candidates)
+        st.session_state.br = RegistrationBureau()
+        st.session_state.voters = {
+            f"voter_{i}": SplitVoter(voter_id=f"voter_{i}")
+            for i in range(1, num_voters + 1)
+        }
+        st.session_state.logs.append(t(T.SPLIT_BR_INIT, lang))
+        init_msg = t(T.SPLIT_CVK_INIT, lang)
+
     else:
         st.session_state.cvk = SimpleCVK(candidates=candidates)
         st.session_state.voters = {
@@ -100,9 +112,16 @@ if "lab_id" not in st.session_state or st.session_state.lab_id != selected_lab_i
 st.session_state.cvk.set_language(lang)
 
 # UI Layout: Tabs
-tab_control, tab_terminal, tab_results = st.tabs(
-    [t(T.CONTROL_PANEL, lang), t(T.TERMINAL_LOGS, lang), t(T.RESULTS, lang)]
+# Added a visual spacer for the Tasks tab to make it stand out
+tab_control, tab_terminal, tab_results, tab_tasks = st.tabs(
+    [
+        t(T.CONTROL_PANEL, lang),
+        t(T.TERMINAL_LOGS, lang),
+        t(T.RESULTS, lang),
+        " " * 5 + "📋 " + t(T.TASKS, lang),
+    ]
 )
+
 
 with tab_control:
     st.header(t(T.CONTROL_PANEL, lang))
@@ -152,6 +171,31 @@ with tab_control:
                     )
                 else:
                     vote_processing_logs = run_single_voter_scenario_blind(
+                        cvk,
+                        st.session_state.voters,
+                        scenario,
+                        selected_voter_id,
+                        selected_candidate,
+                        lang,
+                        candidates,
+                    )
+            elif protocol_type == "split":
+                from labs.lab3.scenarios import (
+                    run_simulate_all_split,
+                    run_single_voter_scenario_split,
+                )
+
+                if scenario == "scenario_simulate_all_split":
+                    vote_processing_logs = run_simulate_all_split(
+                        st.session_state.br,
+                        cvk,
+                        st.session_state.voters,
+                        candidates,
+                        lang,
+                    )
+                else:
+                    vote_processing_logs = run_single_voter_scenario_split(
+                        st.session_state.br,
                         cvk,
                         st.session_state.voters,
                         scenario,
@@ -237,3 +281,7 @@ with tab_terminal:
 
 with tab_results:
     render_results(st.session_state.cvk.tallies, lang)
+
+
+with tab_tasks:
+    render_tasks(st.session_state.lab_id, lab_config["name"], lang)

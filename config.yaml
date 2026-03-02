@@ -48,3 +48,31 @@ labs:
       - id: "scenario_tampered_blind"
         name: "Tampered Ballot during Blind Sign"
         description: "A voter tries to sneak a tampered ballot set past CVK's 9/10 check."
+
+  - id: 3
+    name: "Lab 3: Distribution of Powers (Split)"
+    protocol: "split"
+    settings:
+      num_voters: 5
+      candidates:
+        - "Alice (Кандидат 1)"
+        - "Bob (Кандидат 2)"
+    scenarios:
+      - id: "scenario_normal_split"
+        name: "Normal Vote (Split Powers)"
+        description: "A voter gets RN from BR, then votes successfully at CVK. Finally verifies."
+      - id: "scenario_simulate_all_split"
+        name: "Simulate Full Election (Split)"
+        description: "Simulate all 5 voters casting their votes."
+      - id: "scenario_double_rn_split"
+        name: "Double RN Request"
+        description: "A voter tries to get a second Registration Number from BR."
+      - id: "scenario_double_vote_split"
+        name: "Double Voting (Same RN)"
+        description: "A voter registers once but tries to send two ballots to CVK."
+      - id: "scenario_invalid_rn_split"
+        name: "Invalid RN Usage"
+        description: "A voter attempts to use an RN not issued by the BR."
+      - id: "scenario_verify_split"
+        name: "Vote Verification"
+        description: "A voter verifies their cast vote in the published CVK ballot list."
