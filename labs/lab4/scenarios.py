@@ -3,6 +3,7 @@ import random
 import base64
 from typing import Dict, List
 
+from labs.base import BaseScenarioRunner
 from labs.lab4.protocol import VotingCommission, SplitFactorCVK, SplitFactorVoter
 from core.i18n import t, T
 
@@ -37,7 +38,11 @@ def run_simulate_all_factor(
         if v1_ok:
             logs.append(t(T.FACTOR_VC_VERIFIED, lang))
         else:
-            msg = "Голос відхилено ВК-1 (Дублікат)" if lang == "Українська" else "Vote rejected by VC-1 (Duplicate)"
+            msg = (
+                "Голос відхилено ВК-1 (Дублікат)"
+                if lang == "Українська"
+                else "Vote rejected by VC-1 (Duplicate)"
+            )
             logs.append(f"❌ {msg}")
 
         logs.append(t(T.FACTOR_SEND_V2, lang))
@@ -45,7 +50,11 @@ def run_simulate_all_factor(
         if v2_ok:
             logs.append(t(T.FACTOR_VC_VERIFIED, lang))
         else:
-            msg = "Голос відхилено ВК-2 (Дублікат)" if lang == "Українська" else "Vote rejected by VC-2 (Duplicate)"
+            msg = (
+                "Голос відхилено ВК-2 (Дублікат)"
+                if lang == "Українська"
+                else "Vote rejected by VC-2 (Duplicate)"
+            )
             logs.append(f"❌ {msg}")
 
         if v1_ok and v2_ok:
@@ -69,6 +78,54 @@ def run_simulate_all_factor(
         )
 
     return logs
+
+
+class FactorScenarioRunner(BaseScenarioRunner):
+    """
+    Scenario runner for Lab 4 (Factor Split Protocol).
+    """
+
+    def __init__(
+        self,
+        vc1: VotingCommission,
+        vc2: VotingCommission,
+        cvk: SplitFactorCVK,
+        voters: Dict[str, SplitFactorVoter],
+        candidates: List[str],
+        candidate_id_map: Dict[str, int],
+        lang: str,
+    ):
+        super().__init__(voters, candidates, lang)
+        self.vc1 = vc1
+        self.vc2 = vc2
+        self.cvk = cvk
+        self.candidate_id_map = candidate_id_map
+
+    def run(
+        self, scenario_id: str, selected_voter_id: str, selected_candidate: str
+    ) -> List[str]:
+        if scenario_id == "scenario_simulate_all_factor":
+            return run_simulate_all_factor(
+                self.vc1,
+                self.vc2,
+                self.cvk,
+                self.voters,
+                self.candidates,
+                self.candidate_id_map,
+                self.lang,
+            )
+        else:
+            return run_single_voter_scenario_factor(
+                self.vc1,
+                self.vc2,
+                self.cvk,
+                self.voters,
+                scenario_id,
+                selected_voter_id,
+                selected_candidate,
+                self.candidate_id_map,
+                self.lang,
+            )
 
 
 def run_single_voter_scenario_factor(
@@ -99,8 +156,6 @@ def run_single_voter_scenario_factor(
 
     if scenario_id == "scenario_tamper_factor":
         # Simulate VC-1 tampering by changing the encrypted_factor
-        # We need to re-encrypt a different factor for it to be "validly" tampered or just random junk
-        # Text says: "Оскільки перед підрахунком голосів всі ВК публікують частинки..."
         # Let's say VC-1 changes f1 value.
 
         # Extract original factor
@@ -109,10 +164,6 @@ def run_single_voter_scenario_factor(
 
         # Tampered val (random multiplier)
         tampered_val = (orig_val * 7) % key_params["n"]
-
-        # Inject it into a fake payload for VC-1 (mimicking internal VC tampering)
-        # Note: VC-1 doesn't verify its own internal metadata, it just publishes it later.
-        # But here we simulate it by modifying what's stored in VC-1.
 
         # 1. Send legitimate factor
         vc1.process_partial_ballot(p1, lang)
@@ -130,7 +181,11 @@ def run_single_voter_scenario_factor(
         if vc1.process_partial_ballot(p1, lang):
             logs.append(t(T.FACTOR_VC_VERIFIED, lang))
         else:
-            msg = "Error: Vote rejected by VC-1 (Duplicate or Invalid)." if lang == "English" else "Помилка: Голос відхилено ВК-1 (Дублікат або невірний підпис)."
+            msg = (
+                "Error: Vote rejected by VC-1 (Duplicate or Invalid)."
+                if lang == "English"
+                else "Помилка: Голос відхилено ВК-1 (Дублікат або невірний підпис)."
+            )
             logs.append(f"❌ {msg}")
             return logs
 
@@ -139,7 +194,11 @@ def run_single_voter_scenario_factor(
     if vc2.process_partial_ballot(p2, lang):
         logs.append(t(T.FACTOR_VC_VERIFIED, lang))
     else:
-        msg = "Error: Vote rejected by VC-2 (Duplicate or Invalid)." if lang == "English" else "Помилка: Голос відхилено ВК-2 (Дублікат або невірний підпис)."
+        msg = (
+            "Error: Vote rejected by VC-2 (Duplicate or Invalid)."
+            if lang == "English"
+            else "Помилка: Голос відхилено ВК-2 (Дублікат або невірний підпис)."
+        )
         logs.append(f"❌ {msg}")
         return logs
 

@@ -1,4 +1,7 @@
+import random
+import uuid
 from typing import Dict, List
+from labs.base import BaseScenarioRunner
 from labs.lab3.protocol import RegistrationBureau, SplitCVK, SplitVoter
 from core.i18n import t, T
 
@@ -17,8 +20,6 @@ def run_simulate_all_split(
     cvk_pub_pem = cvk.get_public_key()
 
     for v_id, active_voter in voters.items():
-        import random
-
         rand_candidate = random.choice(candidates)
         logs.append(t(T.SPLIT_VOTER_REQUESTS_RN, lang, voter=v_id))
 
@@ -60,6 +61,43 @@ def run_simulate_all_split(
     return logs
 
 
+class SplitScenarioRunner(BaseScenarioRunner):
+    """
+    Scenario runner for Lab 3 (Split Protocol).
+    """
+
+    def __init__(
+        self,
+        br: RegistrationBureau,
+        cvk: SplitCVK,
+        voters: Dict[str, SplitVoter],
+        candidates: List[str],
+        lang: str,
+    ):
+        super().__init__(voters, candidates, lang)
+        self.br = br
+        self.cvk = cvk
+
+    def run(
+        self, scenario_id: str, selected_voter_id: str, selected_candidate: str
+    ) -> List[str]:
+        if scenario_id == "scenario_simulate_all_split":
+            return run_simulate_all_split(
+                self.br, self.cvk, self.voters, self.candidates, self.lang
+            )
+        else:
+            return run_single_voter_scenario_split(
+                self.br,
+                self.cvk,
+                self.voters,
+                scenario_id,
+                selected_voter_id,
+                selected_candidate,
+                self.lang,
+                self.candidates,
+            )
+
+
 def run_single_voter_scenario_split(
     br: RegistrationBureau,
     cvk: SplitCVK,
@@ -74,8 +112,6 @@ def run_single_voter_scenario_split(
     unregistered_str = t(T.UNREGISTERED_USER, lang)
 
     if selected_voter_id == unregistered_str:
-        import uuid
-
         active_voter = SplitVoter(unregistered_str, is_registered=False)
     else:
         active_voter = voters.get(selected_voter_id)
@@ -121,8 +157,6 @@ def run_single_voter_scenario_split(
 
     elif scenario_id == "scenario_invalid_rn_split":
         # Force an invalid RN
-        import uuid
-
         fake_rn = str(uuid.uuid4())
         logs.append(t(T.SPLIT_VOTER_FAKE_RN, lang, voter=active_voter.voter_id))
         active_voter.set_rn(fake_rn)

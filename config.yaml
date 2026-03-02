@@ -98,3 +98,31 @@ labs:
       - id: "scenario_tamper_factor"
         name: "Tamper with Factor"
         description: "One VC alters a factor, CVK decryption results in an invalid ID."
+
+  - id: 5
+    name: "Lab 5: Decentralized E-voting (No Commission)"
+    protocol: "decentralized"
+    settings:
+      num_voters: 5
+      candidates:
+        - "Alice (ID 12)"
+        - "Bob (ID 24)"
+      candidate_ids:
+        "Alice (ID 12)": 12
+        "Bob (ID 24)": 24
+    scenarios:
+      - id: "scenario_normal_decentralized"
+        name: "Normal Vote (Decentralized)"
+        description: "A voter prepares a multi-layered ballot. Others participate in rounds."
+      - id: "scenario_simulate_all_decentralized"
+        name: "Simulate Full Election (Decentralized)"
+        description: "All 5 voters participate in multi-layered encryption and decryption rounds."
+      - id: "scenario_double_vote_decentralized"
+        name: "Double Voting Attempt"
+        description: "A voter tries to inject two ballots into the decentralized round."
+      - id: "scenario_tamper_decentralized"
+        name: "Ballot Tampering Detection"
+        description: "Voter A attempts to modify another voter's ballot during their turn."
+      - id: "scenario_count_decentralized"
+        name: "Ballot Injection/Removal Detection"
+        description: "Voter A attempts to remove a ballot or add an extra one."

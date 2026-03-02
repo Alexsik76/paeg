@@ -119,6 +119,26 @@ class T:
     FACTOR_ERR_TAMPERED = "factor_err_tampered"
     FACTOR_ERR_INVALID_ID = "factor_err_invalid_id"
 
+    # Lab 5: Decentralized Protocol
+    SCENARIO_NORMAL_DECENTRALIZED = "scenario_normal_decentralized"
+    SCENARIO_SIMULATE_ALL_DECENTRALIZED = "scenario_simulate_all_decentralized"
+    SCENARIO_DOUBLE_VOTE_DECENTRALIZED = "scenario_double_vote_decentralized"
+    SCENARIO_TAMPER_DECENTRALIZED = "scenario_tamper_decentralized"
+    SCENARIO_COUNT_DECENTRALIZED = "scenario_count_decentralized"
+    DECENTRALIZED_INIT = "decentralized_init"
+    DECENTRALIZED_ROUND_ENC = "decentralized_round_enc"
+    DECENTRALIZED_ROUND_DEC = "decentralized_round_dec"
+    DECENTRALIZED_VOTER_READY = "decentralized_voter_ready"
+    DECENTRALIZED_VERIFYING_RP = "decentralized_verifying_rp"
+    DECENTRALIZED_SHUFFLING = "decentralized_shuffling"
+    DECENTRALIZED_SUCCESS = "decentralized_success"
+    DECENTRALIZED_ERR_RP_MISSING = "decentralized_err_rp_missing"
+    DECENTRALIZED_ERR_COUNT = "decentralized_err_count"
+    DECENTRALIZED_ERR_TAMPERED = "decentralized_err_tampered"
+    DECENTRALIZED_FINAL_TALLY = "decentralized_final_tally"
+    DECENTRALIZED_VOTE_FOUND = "decentralized_vote_found"
+    ERR_SELECT_ALL = "err_select_all"
+
 
 # Translations
 translations: Dict[str, Dict[str, str]] = {
@@ -221,6 +241,24 @@ translations: Dict[str, Dict[str, str]] = {
         T.FACTOR_CVK_DECRYPTED: "CVK decrypted joined ballot. Found Candidate ID {val}.",
         T.FACTOR_ERR_TAMPERED: "ERROR: Decrypted ID {val} does not match any candidate! Tampering detected.",
         T.FACTOR_ERR_INVALID_ID: "ERROR: Decrypted value {val} is not a valid Candidate ID.",
+        T.SCENARIO_NORMAL_DECENTRALIZED: "Normal Vote (Decentralized)",
+        T.SCENARIO_SIMULATE_ALL_DECENTRALIZED: "Simulate Full Election (Decentralized)",
+        T.SCENARIO_DOUBLE_VOTE_DECENTRALIZED: "Double Voting Attempt",
+        T.SCENARIO_TAMPER_DECENTRALIZED: "Ballot Tampering Detection",
+        T.SCENARIO_COUNT_DECENTRALIZED: "Ballot Injection/Removal Detection",
+        T.DECENTRALIZED_INIT: "Initializing Decentralized Protocol without Voting Commission.",
+        T.DECENTRALIZED_ROUND_ENC: "Voter {voter} is performing encryption round...",
+        T.DECENTRALIZED_ROUND_DEC: "--- Round {round}: Voter {voter} is decrypting, shuffling and signing ballots ---",
+        T.DECENTRALIZED_VOTER_READY: "Voter {voter} has prepared their multi-layered ballot.",
+        T.DECENTRALIZED_VERIFYING_RP: "Voter {voter} verified their RP is present.",
+        T.DECENTRALIZED_SHUFFLING: "Voter {voter} shuffled the ballots.",
+        T.DECENTRALIZED_SUCCESS: "Decentralized protocol completed successfully.",
+        T.DECENTRALIZED_ERR_RP_MISSING: "CRITICAL: Voter {voter} cannot find their RP! Protocol aborted.",
+        T.DECENTRALIZED_ERR_COUNT: "CRITICAL: Voter {voter} detected incorrect ballot count ({count} instead of {expected})! Protocol aborted.",
+        T.DECENTRALIZED_ERR_TAMPERED: "CRITICAL: Voter {voter} detected signature mismatch or tampering! Protocol aborted.",
+        T.DECENTRALIZED_FINAL_TALLY: "Final votes tallying (Voter E):",
+        T.DECENTRALIZED_VOTE_FOUND: "• Found ballot for: {cand}",
+        T.ERR_SELECT_ALL: "Please select all options.",
     },
     "Українська": {
         T.APP_TITLE: "Симуляція:",
@@ -321,6 +359,24 @@ translations: Dict[str, Dict[str, str]] = {
         T.FACTOR_CVK_DECRYPTED: "ЦВК розшифрувала об'єднаний бюлетень. Отримано ID кандидата: {val}.",
         T.FACTOR_ERR_TAMPERED: "ПОМИЛКА: Розшифрований ID {val} не збігається з жодним кандидатом! Виявлено підміну.",
         T.FACTOR_ERR_INVALID_ID: "ПОМИЛКА: Розшифроване значення {val} не є дійсним ID кандидата.",
+        T.SCENARIO_NORMAL_DECENTRALIZED: "Нормальне голосування (Децентралізовано)",
+        T.SCENARIO_SIMULATE_ALL_DECENTRALIZED: "Симулювати повні вибори (Децентралізовано)",
+        T.SCENARIO_DOUBLE_VOTE_DECENTRALIZED: "Спроба подвійного голосування",
+        T.SCENARIO_TAMPER_DECENTRALIZED: "Виявлення підміни бюлетеня",
+        T.SCENARIO_COUNT_DECENTRALIZED: "Виявлення підкидання/вилучення бюлетеня",
+        T.DECENTRALIZED_INIT: "Ініціалізація децентралізованого протоколу без виборчої комісії.",
+        T.DECENTRALIZED_ROUND_ENC: "Виборець {voter} виконує раунд шифрування...",
+        T.DECENTRALIZED_ROUND_DEC: "--- Раунд {round}: Виборець {voter} розшифровує, перемішує та підписує бюлетені ---",
+        T.DECENTRALIZED_VOTER_READY: "Виборець {voter} підготував багатошаровий бюлетень.",
+        T.DECENTRALIZED_VERIFYING_RP: "Виборець {voter} підтвердив наявність свого RP.",
+        T.DECENTRALIZED_SHUFFLING: "Виборець {voter} перемішав бюлетені.",
+        T.DECENTRALIZED_SUCCESS: "Децентралізований протокол успішно завершено.",
+        T.DECENTRALIZED_ERR_RP_MISSING: "КРИТИЧНА ПОМИЛКА: Виборець {voter} не знайшов свій RP! Протокол зірвано.",
+        T.DECENTRALIZED_ERR_COUNT: "КРИТИЧНА ПОМИЛКА: Виборець {voter} виявив неправильну кількість бюлетенів ({count} замість {expected})! Протокол зірвано.",
+        T.DECENTRALIZED_ERR_TAMPERED: "КРИТИЧНА ПОМИЛКА: Виборець {voter} виявив пошкоджений бюлетень або невірний підпис! Протокол зірвано.",
+        T.DECENTRALIZED_FINAL_TALLY: "Фінальний підрахунок голосів (Виборець Е):",
+        T.DECENTRALIZED_VOTE_FOUND: "• Знайдено бюлетень за: {cand}",
+        T.ERR_SELECT_ALL: "Будь ласка, оберіть всі опції.",
     },
 }
 

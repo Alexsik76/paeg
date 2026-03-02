@@ -1,7 +1,7 @@
 import random
 from typing import Dict, List
 
-from labs.base import BaseCVK, BaseVoter
+from labs.base import BaseCVK, BaseVoter, BaseScenarioRunner
 from labs.lab1.protocol import SimpleVoter
 from core.i18n import t, T
 
@@ -109,3 +109,34 @@ def run_single_voter_scenario(
         logs.extend(cvk.get_logs())
 
     return logs
+
+
+class SimpleScenarioRunner(BaseScenarioRunner):
+    """
+    Scenario runner for Lab 1 (Simple Protocol).
+    """
+
+    def __init__(
+        self,
+        cvk: BaseCVK,
+        voters: Dict[str, BaseVoter],
+        candidates: List[str],
+        lang: str,
+    ):
+        super().__init__(voters, candidates, lang)
+        self.cvk = cvk
+
+    def run(
+        self, scenario_id: str, selected_voter_id: str, selected_candidate: str
+    ) -> List[str]:
+        if scenario_id == "scenario_simulate_all":
+            return run_simulate_all(self.cvk, self.voters, self.candidates, self.lang)
+        else:
+            return run_single_voter_scenario(
+                self.cvk,
+                self.voters,
+                scenario_id,
+                selected_voter_id,
+                selected_candidate,
+                self.lang,
+            )

@@ -1,5 +1,8 @@
+import random
+import uuid
 from typing import Dict, List
 
+from labs.base import BaseScenarioRunner
 from labs.lab2.protocol import BlindVoter, BlindCVK
 from core.i18n import t, T
 
@@ -15,8 +18,6 @@ def run_simulate_all_blind(
     cvk_pub_pem = cvk.get_public_key()
 
     for v_id, active_voter in voters.items():
-        import random
-
         active_voter.rnd_id = str(random.randint(1000000, 9999999))
         rand_candidate = random.choice(candidates)
 
@@ -69,6 +70,40 @@ def run_simulate_all_blind(
     return logs
 
 
+class BlindScenarioRunner(BaseScenarioRunner):
+    """
+    Scenario runner for Lab 2 (Blind Signature Protocol).
+    """
+
+    def __init__(
+        self,
+        cvk: BlindCVK,
+        voters: Dict[str, BlindVoter],
+        candidates: List[str],
+        lang: str,
+    ):
+        super().__init__(voters, candidates, lang)
+        self.cvk = cvk
+
+    def run(
+        self, scenario_id: str, selected_voter_id: str, selected_candidate: str
+    ) -> List[str]:
+        if scenario_id == "scenario_simulate_all_blind":
+            return run_simulate_all_blind(
+                self.cvk, self.voters, self.candidates, self.lang
+            )
+        else:
+            return run_single_voter_scenario_blind(
+                self.cvk,
+                self.voters,
+                scenario_id,
+                selected_voter_id,
+                selected_candidate,
+                self.lang,
+                self.candidates,
+            )
+
+
 def run_single_voter_scenario_blind(
     cvk: BlindCVK,
     voters: Dict[str, BlindVoter],
@@ -82,8 +117,6 @@ def run_single_voter_scenario_blind(
     unregistered_str = t(T.UNREGISTERED_USER, lang)
 
     if selected_voter_id == unregistered_str:
-        import uuid
-
         active_voter = BlindVoter(unregistered_str, is_registered=False)
     else:
         active_voter = voters.get(selected_voter_id)
@@ -93,8 +126,6 @@ def run_single_voter_scenario_blind(
 
     cvk_e, cvk_n = cvk.get_public_numbers()
     cvk_pub_pem = cvk.get_public_key()
-
-    import uuid
 
     active_voter.rnd_id = str(uuid.uuid4())
 
@@ -131,7 +162,7 @@ def run_single_voter_scenario_blind(
         logs.extend(cvk.get_logs())
         return signed_set, chosen_index
 
-    if scenario_id == "scenario_tampered_blind":
+    if scenario_id == "scenario_tamper_blind":
         signed_set, chosen_idx = sign_step(tamper=True)
         return logs
 
