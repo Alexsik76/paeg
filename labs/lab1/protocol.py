@@ -6,7 +6,7 @@ import json
 from base64 import b64encode, b64decode
 from typing import Dict, Any
 
-from protocols.base import BaseVoter, BaseCVK
+from labs.base import BaseVoter, BaseCVK
 from core.crypto import RSACryptoSystem
 from core.i18n import t, T
 

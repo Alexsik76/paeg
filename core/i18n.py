@@ -59,6 +59,27 @@ class T:
     SIMULATION_OK = "simulation_ok"
     SIMULATION_ERRORS = "simulation_errors"
 
+    # Lab 2: Blind Signature Protocol
+    SCENARIO_NORMAL_BLIND = "scenario_normal_blind"
+    SCENARIO_SIMULATE_ALL_BLIND = "scenario_simulate_all_blind"
+    SCENARIO_DOUBLE_REQUEST_BLIND = "scenario_double_request_blind"
+    SCENARIO_DOUBLE_VOTE_BLIND = "scenario_double_vote_blind"
+    SCENARIO_TAMPERED_BLIND = "scenario_tampered_blind"
+
+    BLIND_PREPARING_SETS = "blind_preparing_sets"
+    BLIND_SENDING_SETS = "blind_sending_sets"
+    BLIND_CVK_REQUEST_MULT = "blind_cvk_request_mult"
+    BLIND_VOTER_SEND_MULT = "blind_voter_send_mult"
+    BLIND_CVK_SIGNED = "blind_cvk_signed"
+    BLIND_CVK_REJECTED = "blind_cvk_rejected"
+    BLIND_CVK_ALREADY_SIGNED = "blind_cvk_already_signed"
+    BLIND_UNBLINDING = "blind_unblinding"
+    BLIND_CASTING_VOTE = "blind_casting_vote"
+    BLIND_CAST_SECOND_VOTE = "blind_cast_second_vote"
+    BLIND_ERR_ID_USED = "blind_err_id_used"
+    BLIND_ERR_TAMPERED = "blind_err_tampered"
+    CVK_INIT_BLIND = "cvk_init_blind"
+
 
 # Translations
 translations: Dict[str, Dict[str, str]] = {
@@ -109,6 +130,24 @@ translations: Dict[str, Dict[str, str]] = {
         T.SIMULATING_ALL: "--- Simulating full election for all registered voters ---",
         T.SIMULATION_OK: "Full election simulation completed. All {count} votes processed successfully.",
         T.SIMULATION_ERRORS: "WARNING: Full election simulation completed with violations. {success_count} of {total_count} votes tallied.",
+        T.SCENARIO_NORMAL_BLIND: "Normal Vote with Blind Signature",
+        T.SCENARIO_SIMULATE_ALL_BLIND: "Simulate Full Election (Blind)",
+        T.SCENARIO_DOUBLE_REQUEST_BLIND: "Double Signature Request Attempt",
+        T.SCENARIO_DOUBLE_VOTE_BLIND: "Double Voting Attempt (Same ID)",
+        T.SCENARIO_TAMPERED_BLIND: "Tampered Ballot Attempt (9/10 Check)",
+        T.BLIND_PREPARING_SETS: "Voter {voter} generated 10 blinded ballot sets with ID {voter_rnd_id}...",
+        T.BLIND_SENDING_SETS: "Sending 10 blinded sets to CVK...",
+        T.BLIND_CVK_REQUEST_MULT: "CVK requests unblinding multipliers for 9 random sets to verify...",
+        T.BLIND_VOTER_SEND_MULT: "Voter provides multipliers for the requested 9 sets...",
+        T.BLIND_CVK_SIGNED: "CVK verified 9 sets successfully. Blind-signed the remaining 1 set.",
+        T.BLIND_CVK_REJECTED: "ERROR: CVK found discrepancies in the 9 sets. Signature request rejected.",
+        T.BLIND_CVK_ALREADY_SIGNED: "ERROR: CVK has already issued a signature to voter {voter}. Duplicate request rejected.",
+        T.BLIND_UNBLINDING: "Voter received signed blinded ballot from CVK. Unblinding...",
+        T.BLIND_CASTING_VOTE: "Casting decrypted signed vote for candidate {candidate}...",
+        T.BLIND_CAST_SECOND_VOTE: "Attempting to cast another ballot from the same signed set...",
+        T.BLIND_ERR_ID_USED: "ERROR: Ballot with ID {voter_rnd_id} was already used. Vote rejected.",
+        T.BLIND_ERR_TAMPERED: "ERROR: Ballot signature is invalid. Vote rejected.",
+        T.CVK_INIT_BLIND: "CVK initialized Blind Signature Protocol.",
     },
     "Українська": {
         T.APP_TITLE: "Симуляція:",
@@ -157,6 +196,24 @@ translations: Dict[str, Dict[str, str]] = {
         T.SIMULATING_ALL: "--- Симуляція повних виборів для всіх зареєстрованих виборців ---",
         T.SIMULATION_OK: "Симуляцію виборів завершено. Усі {count} голосів успішно зараховано ЦВК.",
         T.SIMULATION_ERRORS: "ПОПЕРЕДЖЕННЯ: Симуляцію виборів завершено з порушеннями. Зараховано {success_count} з {total_count} голосів.",
+        T.SCENARIO_NORMAL_BLIND: "Нормальне голосування (Сліпий підпис)",
+        T.SCENARIO_SIMULATE_ALL_BLIND: "Симулювати повні вибори (Сліпий підпис)",
+        T.SCENARIO_DOUBLE_REQUEST_BLIND: "Спроба подвійного запиту на підпис",
+        T.SCENARIO_DOUBLE_VOTE_BLIND: "Спроба подвійного голосування (той самий ID)",
+        T.SCENARIO_TAMPERED_BLIND: "Спроба підміни під час перевірки 9 з 10",
+        T.BLIND_PREPARING_SETS: "Виборець {voter} згенерував 10 наборів замаскованих бюлетенів з ID {voter_rnd_id}...",
+        T.BLIND_SENDING_SETS: "Надсилання 10 замаскованих наборів до ЦВК...",
+        T.BLIND_CVK_REQUEST_MULT: "ЦВК запитує множники для 9 випадкових наборів для перевірки...",
+        T.BLIND_VOTER_SEND_MULT: "Виборець надає множники для 9 обраних наборів...",
+        T.BLIND_CVK_SIGNED: "ЦВК успішно перевірила 9 наборів і підписала 10-й замаскований набір.",
+        T.BLIND_CVK_REJECTED: "ПОМИЛКА: ЦВК виявила маніпуляції у 9 наборах. У підписі відмовлено.",
+        T.BLIND_CVK_ALREADY_SIGNED: "ПОМИЛКА: Виборець {voter} вже отримав підпис. Повторний запит відхилено.",
+        T.BLIND_UNBLINDING: "Виборець отримав підписані бюлетені. Зняття маскування...",
+        T.BLIND_CASTING_VOTE: "Відправка розшифрованого підписаного бюлетеня за кандидата {candidate}...",
+        T.BLIND_CAST_SECOND_VOTE: "Спроба відправити інший бюлетень з того ж самого підписаного набору...",
+        T.BLIND_ERR_ID_USED: "ПОМИЛКА: Бюлетень з ID {voter_rnd_id} вже був використаний. Голос відхилено.",
+        T.BLIND_ERR_TAMPERED: "ПОМИЛКА: Недійсний підпис бюлетеня. Голос відхилено.",
+        T.CVK_INIT_BLIND: "ЦВК ініціалізувала протокол сліпого підпису.",
     },
 }
 
