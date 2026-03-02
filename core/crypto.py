@@ -3,6 +3,7 @@ Cryptography primitives for the voting protocols.
 Provides utilities for RSA key generation, encryption, decryption, signing, and verification.
 """
 
+from typing import Dict
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.exceptions import InvalidSignature
@@ -134,3 +135,26 @@ class RSACryptoSystem:
         Load a public key from PEM formatted bytes.
         """
         return serialization.load_pem_public_key(pem_data)
+
+    def get_key_parameters(self) -> Dict[str, int]:
+        """
+        Returns n and e for homomorphic operations.
+        """
+        pub_numbers = self.public_key.public_numbers()
+        return {"n": pub_numbers.n, "e": pub_numbers.e}
+
+    @staticmethod
+    def raw_encrypt(n: int, e: int, message_int: int) -> int:
+        """
+        Basic textbook RSA encryption: c = m^e mod n.
+        Used for homomorphic demonstrations.
+        """
+        return pow(message_int, e, n)
+
+    def raw_decrypt(self, ciphertext_int: int) -> int:
+        """
+        Basic textbook RSA decryption: m = c^d mod n.
+        Used for homomorphic demonstrations.
+        """
+        private_numbers = self.private_key.private_numbers()
+        return pow(ciphertext_int, private_numbers.d, private_numbers.public_numbers.n)

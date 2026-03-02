@@ -8,6 +8,7 @@ from core.config_parser import load_config, get_lab_config
 from labs.lab1.protocol import SimpleCVK, SimpleVoter
 from labs.lab2.protocol import BlindCVK, BlindVoter
 from labs.lab3.protocol import RegistrationBureau, SplitCVK, SplitVoter
+from labs.lab4.protocol import VotingCommission, SplitFactorCVK, SplitFactorVoter
 from ui.components import render_terminal, render_results, render_tasks
 from core.i18n import t, T
 
@@ -81,6 +82,19 @@ def reset_lab_state():
         }
         st.session_state.logs.append(t(T.SPLIT_BR_INIT, lang))
         init_msg = t(T.SPLIT_CVK_INIT, lang)
+
+    elif protocol_type == "factor":
+        candidate_ids = lab_config.get("settings", {}).get("candidate_ids", {})
+        st.session_state.cvk = SplitFactorCVK(
+            candidates=candidates, candidate_id_map=candidate_ids
+        )
+        st.session_state.vc1 = VotingCommission(commission_id=1)
+        st.session_state.vc2 = VotingCommission(commission_id=2)
+        st.session_state.voters = {
+            f"voter_{i}": SplitFactorVoter(voter_id=f"voter_{i}")
+            for i in range(1, num_voters + 1)
+        }
+        init_msg = "ВК-1, ВК-2 та ЦВК ініціалізовані для гомоморфного протоколу."
 
     else:
         st.session_state.cvk = SimpleCVK(candidates=candidates)
@@ -204,6 +218,37 @@ with tab_control:
                         lang,
                         candidates,
                     )
+            elif protocol_type == "factor":
+                from labs.lab4.scenarios import (
+                    run_simulate_all_factor,
+                    run_single_voter_scenario_factor,
+                )
+
+                candidate_ids = lab_config.get("settings", {}).get("candidate_ids", {})
+
+                if scenario == "scenario_simulate_all_factor":
+                    vote_processing_logs = run_simulate_all_factor(
+                        st.session_state.vc1,
+                        st.session_state.vc2,
+                        cvk,
+                        st.session_state.voters,
+                        candidates,
+                        candidate_ids,
+                        lang,
+                    )
+                else:
+                    vote_processing_logs = run_single_voter_scenario_factor(
+                        st.session_state.vc1,
+                        st.session_state.vc2,
+                        cvk,
+                        st.session_state.voters,
+                        scenario,
+                        selected_voter_id,
+                        selected_candidate,
+                        candidate_ids,
+                        lang,
+                    )
+
             else:
                 from labs.lab1.scenarios import (
                     run_simulate_all,
