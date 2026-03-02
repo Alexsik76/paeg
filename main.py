@@ -8,7 +8,7 @@ from core.config_parser import load_config, get_lab_config
 from labs.lab1.protocol import SimpleCVK, SimpleVoter
 from labs.lab2.protocol import BlindCVK, BlindVoter
 from labs.lab3.protocol import RegistrationBureau, SplitCVK, SplitVoter
-from ui.components import render_terminal, render_results
+from ui.components import render_terminal, render_results, render_tasks
 from core.i18n import t, T
 
 st.set_page_config(
@@ -112,9 +112,16 @@ if "lab_id" not in st.session_state or st.session_state.lab_id != selected_lab_i
 st.session_state.cvk.set_language(lang)
 
 # UI Layout: Tabs
-tab_control, tab_terminal, tab_results = st.tabs(
-    [t(T.CONTROL_PANEL, lang), t(T.TERMINAL_LOGS, lang), t(T.RESULTS, lang)]
+# Added a visual spacer for the Tasks tab to make it stand out
+tab_control, tab_terminal, tab_results, tab_tasks = st.tabs(
+    [
+        t(T.CONTROL_PANEL, lang),
+        t(T.TERMINAL_LOGS, lang),
+        t(T.RESULTS, lang),
+        " " * 5 + "📋 " + t(T.TASKS, lang),
+    ]
 )
+
 
 with tab_control:
     st.header(t(T.CONTROL_PANEL, lang))
@@ -274,3 +281,7 @@ with tab_terminal:
 
 with tab_results:
     render_results(st.session_state.cvk.tallies, lang)
+
+
+with tab_tasks:
+    render_tasks(st.session_state.lab_id, lab_config["name"], lang)
