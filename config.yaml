@@ -23,3 +23,28 @@ labs:
       - id: "scenario_tampered"
         name: "Tampered Ballot"
         description: "A ballot's content is altered after it was signed."
+
+  - id: 2
+    name: "Lab 2: Blind Signature Protocol"
+    protocol: "blind"
+    settings:
+      num_voters: 5
+      candidates:
+        - "Alice (Кандидат 1)"
+        - "Bob (Кандидат 2)"
+    scenarios:
+      - id: "scenario_normal_blind"
+        name: "Normal Vote with Blind Signature"
+        description: "A voter successfully requests a blind signature and votes."
+      - id: "scenario_simulate_all_blind"
+        name: "Simulate Full Election (Blind)"
+        description: "Simulate all 5 voters casting their votes with blind signatures."
+      - id: "scenario_double_request_blind"
+        name: "Double Signature Request"
+        description: "A voter tries to get a second signed ballot set from CVK."
+      - id: "scenario_double_vote_blind"
+        name: "Double Voting (Same ID)"
+        description: "A voter tries to vote twice using two signed ballots from the same set."
+      - id: "scenario_tampered_blind"
+        name: "Tampered Ballot during Blind Sign"
+        description: "A voter tries to sneak a tampered ballot set past CVK's 9/10 check."

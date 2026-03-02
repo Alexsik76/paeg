@@ -5,7 +5,8 @@ Main Streamlit Entry Point for Electronic Voting Protocols Simulator.
 import streamlit as st
 
 from core.config_parser import load_config, get_lab_config
-from protocols.lab1_simple import SimpleCVK, SimpleVoter
+from labs.lab1.protocol import SimpleCVK, SimpleVoter
+from labs.lab2.protocol import BlindCVK, BlindVoter
 from ui.components import render_terminal, render_results
 from core.i18n import t, T
 
@@ -58,18 +59,27 @@ def reset_lab_state():
     st.session_state.logs = []
     st.session_state.voting_conducted = False
 
-    # Setup CVK
+    protocol_type = lab_config.get("protocol", "simple")
     candidates = lab_config.get("settings", {}).get("candidates", [])
-    st.session_state.cvk = SimpleCVK(candidates=candidates)
-    st.session_state.cvk.set_language(lang)
-    st.session_state.logs.append(t(T.CVK_INIT, lang))
-
-    # Setup Voters
     num_voters = lab_config.get("settings", {}).get("num_voters", 5)
-    st.session_state.voters = {
-        f"voter_{i}": SimpleVoter(voter_id=f"voter_{i}")
-        for i in range(1, num_voters + 1)
-    }
+
+    if protocol_type == "blind":
+        st.session_state.cvk = BlindCVK(candidates=candidates)
+        st.session_state.voters = {
+            f"voter_{i}": BlindVoter(voter_id=f"voter_{i}")
+            for i in range(1, num_voters + 1)
+        }
+        init_msg = t(T.CVK_INIT_BLIND, lang)
+    else:
+        st.session_state.cvk = SimpleCVK(candidates=candidates)
+        st.session_state.voters = {
+            f"voter_{i}": SimpleVoter(voter_id=f"voter_{i}")
+            for i in range(1, num_voters + 1)
+        }
+        init_msg = t(T.CVK_INIT, lang)
+
+    st.session_state.cvk.set_language(lang)
+    st.session_state.logs.append(init_msg)
 
     # Register all voters by default in CVK
     for voter_id, voter in st.session_state.voters.items():
@@ -129,17 +139,47 @@ with tab_control:
             # Keep track of the number of logs before execution to find the newly added ones
             initial_log_count = len(st.session_state.logs)
 
-            from protocols.scenarios import execute_scenario
+            protocol_type = lab_config.get("protocol", "simple")
+            if protocol_type == "blind":
+                from labs.lab2.scenarios import (
+                    run_simulate_all_blind,
+                    run_single_voter_scenario_blind,
+                )
 
-            vote_processing_logs = execute_scenario(
-                scenario_id=scenario,
-                cvk=cvk,
-                voters=st.session_state.voters,
-                candidates=candidates,
-                selected_voter_id=selected_voter_id,
-                selected_candidate=selected_candidate,
-                lang=lang,
-            )
+                if scenario == "scenario_simulate_all_blind":
+                    vote_processing_logs = run_simulate_all_blind(
+                        cvk, st.session_state.voters, candidates, lang
+                    )
+                else:
+                    vote_processing_logs = run_single_voter_scenario_blind(
+                        cvk,
+                        st.session_state.voters,
+                        scenario,
+                        selected_voter_id,
+                        selected_candidate,
+                        lang,
+                        candidates,
+                    )
+            else:
+                from labs.lab1.scenarios import (
+                    run_simulate_all,
+                    run_single_voter_scenario,
+                )
+
+                if scenario == "scenario_simulate_all":
+                    vote_processing_logs = run_simulate_all(
+                        cvk, st.session_state.voters, candidates, lang
+                    )
+                else:
+                    vote_processing_logs = run_single_voter_scenario(
+                        cvk,
+                        st.session_state.voters,
+                        scenario,
+                        selected_voter_id,
+                        selected_candidate,
+                        lang,
+                    )
+
             st.session_state.logs.extend(vote_processing_logs)
 
             # Show immediate result of the action under the button
