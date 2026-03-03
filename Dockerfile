@@ -29,6 +29,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy the rest of the application code
 COPY . .
 
+# Tun Tests
+RUN python -m unittest discover -s ./tests -p "test_*.py"
+
 # Expose the standard Streamlit port
 EXPOSE 8501
 
