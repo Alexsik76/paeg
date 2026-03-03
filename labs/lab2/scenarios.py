@@ -1,14 +1,14 @@
 import random
 import uuid
-from typing import Dict, List
+from typing import Dict, List, Mapping, cast
 
-from labs.base import BaseScenarioRunner
+from labs.base import BaseScenarioRunner, BaseVoter
 from labs.lab2.protocol import BlindVoter, BlindCVK
 from core.i18n import t, T
 
 
 def run_simulate_all_blind(
-    cvk: BlindCVK, voters: Dict[str, BlindVoter], candidates: List[str], lang: str
+    cvk: BlindCVK, voters: Mapping[str, BlindVoter], candidates: List[str], lang: str
 ) -> List[str]:
     logs = [t(T.SIMULATING_ALL, lang)]
     success_count = 0
@@ -82,7 +82,7 @@ class BlindScenarioRunner(BaseScenarioRunner):
         candidates: List[str],
         lang: str,
     ):
-        super().__init__(voters, candidates, lang)
+        super().__init__(cast(Dict[str, BaseVoter], voters), candidates, lang)
         self.cvk = cvk
 
     def run(
@@ -90,12 +90,15 @@ class BlindScenarioRunner(BaseScenarioRunner):
     ) -> List[str]:
         if scenario_id == "scenario_simulate_all_blind":
             return run_simulate_all_blind(
-                self.cvk, self.voters, self.candidates, self.lang
+                self.cvk,
+                cast(Mapping[str, BlindVoter], self.voters),
+                self.candidates,
+                self.lang,
             )
         else:
             return run_single_voter_scenario_blind(
                 self.cvk,
-                self.voters,
+                cast(Mapping[str, BlindVoter], self.voters),
                 scenario_id,
                 selected_voter_id,
                 selected_candidate,
@@ -106,7 +109,7 @@ class BlindScenarioRunner(BaseScenarioRunner):
 
 def run_single_voter_scenario_blind(
     cvk: BlindCVK,
-    voters: Dict[str, BlindVoter],
+    voters: Mapping[str, BlindVoter],
     scenario_id: str,
     selected_voter_id: str,
     selected_candidate: str,
