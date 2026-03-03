@@ -1,0 +1,22 @@
+[run]
+# Specify the source directories to measure
+source = 
+    core
+    labs
+
+# Omit files that do not contain core business logic or are inherently empty
+omit =
+    tests/*
+    */scenarios.py
+    */__init__.py
+    labs/base.py
+
+[report]
+# Exclude specific lines and abstract blocks from coverage calculation
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    @abstractmethod
