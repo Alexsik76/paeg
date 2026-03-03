@@ -2,6 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B)
+[![Python Unit Tests & Coverage](https://github.com/Alexsik76/paeg/actions/workflows/python-tests.yml/badge.svg)](https://github.com/Alexsik76/paeg/actions/workflows/python-tests.yml)
 
 Цей проект є симулятором систем електронного голосування, розробленим в рамках дисципліни ПАЕГ (Проектування архітектури електронного голосування). Застосунок дозволяє симулювати різні етапи та проблеми криптографічних протоколів голосування.
 
